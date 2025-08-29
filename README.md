@@ -132,4 +132,18 @@ Runs on 👉 `http://localhost:5000`
 * Admin credentials are hardcoded only for development.
 * Docker MySQL container must be running before backend start (If docker is used to run the mysql).
 
-> Under development as part of internship at Sasken
+## 📸 Screenshots
+
+| Feature / Screen                 | Screenshot(s) |
+|----------------------------------|---------------|
+| Admin Login                      | <img width="1920" height="906" alt="adminlogin" src="https://github.com/user-attachments/assets/ec875dca-6947-45c8-a6cb-e6d133eeb968" />|
+| Admin Dashboard                  | <img width="1920" height="906" alt="admin dashboard" src="https://github.com/user-attachments/assets/a4af2ad0-820b-4eba-a88d-a76adedc2b48" />|
+| Form Creation   | <img width="1920" height="906" alt="form create1" src="https://github.com/user-attachments/assets/19b69eb8-ae4f-4db0-9a54-b995df6c843c" />
+| Form preview                     | <img width="1920" height="1449" alt="form preview" src="https://github.com/user-attachments/assets/9d76df05-d982-405a-abcf-e923ca0a84eb" />|
+| Employee Login                   | <img width="1920" height="906" alt="employeelogin" src="https://github.com/user-attachments/assets/192114b0-e984-4c76-a5c4-b661635ed72b" />|
+| Employee Dashboard (before filling form) | <img width="1920" height="906" alt="employee dashhboard" src="https://github.com/user-attachments/assets/20713df9-2602-4907-ac2b-9ee6f953ce71" />|
+| Filling the Form                 | <img width="1920" height="1505" alt="fill form" src="https://github.com/user-attachments/assets/0cace49f-9aed-434e-a965-863e2e4bede5" />
+| Employee Dashboard (after filling form)               | <img width="1920" height="906" alt="employee dashboard" src="https://github.com/user-attachments/assets/fdd31beb-efc9-49e0-9251-e3418b93d62e" />|
+| Analytics (overall)   | <img width="1920" height="2017" alt="main" src="https://github.com/user-attachments/assets/ba8b869a-8726-42b7-ad8f-1c4a6d163adc" />|
+|Analytics (per form) | <img width="1920" height="3670" alt="form" src="https://github.com/user-attachments/assets/0d934d04-b0cc-4404-b3a4-643d798d906e" />|
+
