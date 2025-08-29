@@ -1,0 +1,13 @@
+package com.evalease.evalease_backend;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class EvaleaseBackendApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EvaleaseBackendApplication.class, args);
+	}
+
+}
