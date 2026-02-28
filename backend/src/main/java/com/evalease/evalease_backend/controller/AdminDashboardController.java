@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/dashboard")
-@CrossOrigin(origins = "http://localhost:8081")  // match your frontend origin
+@CrossOrigin(origins = "http://localhost:8081")
 public class AdminDashboardController {
 
     private final FormService dashboardService;

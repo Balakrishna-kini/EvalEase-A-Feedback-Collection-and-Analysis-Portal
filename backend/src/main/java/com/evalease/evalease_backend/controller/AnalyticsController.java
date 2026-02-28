@@ -14,7 +14,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/analytics")
-@CrossOrigin(origins = "http://localhost:5000")
+@CrossOrigin(origins = "http://localhost:8081")
 public class AnalyticsController {
 
     @Autowired
@@ -98,5 +98,40 @@ public class AnalyticsController {
             data.add(map);
         }
         return data;
+    }
+
+    // 🔹 Get system-wide top performers
+    @GetMapping("/summary/top-performers")
+    public Map<String, Object> getTopPerformers() {
+        List<Form> forms = formRepository.findAll();
+        Form topByRating = null;
+        double maxRating = -1.0;
+        Form topBySentiment = null;
+        double maxSentiment = -2.0;
+        long totalResponses = 0;
+
+        for (Form f : forms) {
+            SessionAnalyticsDTO stats = analyticsService.getSessionAnalytics(f.getId());
+            totalResponses += stats.getTotalResponses();
+            
+            if (stats.getAverageRating() > maxRating) {
+                maxRating = stats.getAverageRating();
+                topByRating = f;
+            }
+            
+            if (stats.getAverageSentiment() > maxSentiment) {
+                maxSentiment = stats.getAverageSentiment();
+                topBySentiment = f;
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("topRatedForm", topByRating != null ? topByRating.getTitle() : "N/A");
+        result.put("topRating", maxRating >= 0 ? maxRating : 0.0);
+        result.put("topSentimentForm", topBySentiment != null ? topBySentiment.getTitle() : "N/A");
+        result.put("topSentiment", maxSentiment >= -1.0 ? maxSentiment : 0.0);
+        result.put("totalForms", forms.size());
+        result.put("totalResponses", totalResponses);
+        return result;
     }
 }

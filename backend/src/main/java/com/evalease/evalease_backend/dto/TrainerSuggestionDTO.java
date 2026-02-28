@@ -1,37 +1,43 @@
 package com.evalease.evalease_backend.dto;
 
 public class TrainerSuggestionDTO {
-    private String question;
-    private String reason;
-    private String suggestion;
+    private String category;
+    private String observation;
+    private String actionableStep;
+    private String priority;
 
-    public TrainerSuggestionDTO(String question, String reason, String suggestion) {
-        this.question = question;
-        this.reason = reason;
-        this.suggestion = suggestion;
+    public TrainerSuggestionDTO() {}
+
+    public TrainerSuggestionDTO(String category, String observation, String actionableStep, String priority) {
+        this.category = category;
+        this.observation = observation;
+        this.actionableStep = actionableStep;
+        this.priority = priority;
     }
 
-    public String getQuestion() {
-        return question;
+    public static TrainerSuggestionDTOBuilder builder() {
+        return new TrainerSuggestionDTOBuilder();
     }
 
-    public void setQuestion(String question) {
-        this.question = question;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+    public String getObservation() { return observation; }
+    public void setObservation(String observation) { this.observation = observation; }
+    public String getActionableStep() { return actionableStep; }
+    public void setActionableStep(String actionableStep) { this.actionableStep = actionableStep; }
+    public String getPriority() { return priority; }
+    public void setPriority(String priority) { this.priority = priority; }
 
-    public String getReason() {
-        return reason;
-    }
+    public static class TrainerSuggestionDTOBuilder {
+        private String category;
+        private String observation;
+        private String actionableStep;
+        private String priority;
 
-    public void setReason(String reason) {
-        this.reason = reason;
-    }
-
-    public String getSuggestion() {
-        return suggestion;
-    }
-
-    public void setSuggestion(String suggestion) {
-        this.suggestion = suggestion;
+        public TrainerSuggestionDTOBuilder category(String category) { this.category = category; return this; }
+        public TrainerSuggestionDTOBuilder observation(String observation) { this.observation = observation; return this; }
+        public TrainerSuggestionDTOBuilder actionableStep(String actionableStep) { this.actionableStep = actionableStep; return this; }
+        public TrainerSuggestionDTOBuilder priority(String priority) { this.priority = priority; return this; }
+        public TrainerSuggestionDTO build() { return new TrainerSuggestionDTO(category, observation, actionableStep, priority); }
     }
 }

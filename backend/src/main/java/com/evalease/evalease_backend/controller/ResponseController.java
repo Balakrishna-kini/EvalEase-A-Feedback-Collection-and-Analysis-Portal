@@ -11,6 +11,7 @@ import com.evalease.evalease_backend.repository.FormRepository;
 import com.evalease.evalease_backend.repository.QuestionRepository;
 import com.evalease.evalease_backend.repository.ResponseRepository;
 import com.evalease.evalease_backend.repository.SubmittedFormRepository;
+import com.evalease.evalease_backend.service.SentimentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +40,9 @@ public class ResponseController {
 
         @Autowired
         private ResponseRepository responseRepository;
+
+        @Autowired
+        private SentimentService sentimentService;
 
         @PostMapping
         public ResponseEntity<String> submitResponses(@RequestBody SubmitResponseDTO payload) {
@@ -79,13 +83,19 @@ public class ResponseController {
                                         .question(question)
                                         .answer(answerValue)
                                         .submittedForm(savedSubmittedForm)
+                                        .form(form)
                                         .build();
 
                         responses.add(response);
                 }
 
                 // Save All Responses
-                responseRepository.saveAll(responses);
+                List<Response> savedResponses = responseRepository.saveAll(responses);
+
+                // Trigger Async Sentiment Analysis for each text response
+                for (Response resp : savedResponses) {
+                    sentimentService.processResponseSentimentAsync(resp.getId());
+                }
 
                 return ResponseEntity.ok("Responses saved successfully!");
         }

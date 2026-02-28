@@ -10,7 +10,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-const AdminDashboard = ({ user }) => {
+const AdminDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [recentForms, setRecentForms] = useState([]); // Changed here
   const [stats, setStats] = useState({
@@ -34,9 +34,7 @@ const AdminDashboard = ({ user }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("employeeId");
-    localStorage.removeItem("userType");
-    localStorage.removeItem("employeeName");
+    onLogout();
     navigate("/login");
   };
 
@@ -62,15 +60,31 @@ const AdminDashboard = ({ user }) => {
   ];
 
   useEffect(() => {
+    const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+    const token = localStorage.getItem('token');
+    if (!apiBaseUrl) {
+      console.error("VITE_SERVER_PORT is not defined");
+      return;
+    }
     axios
-      .get(`${import.meta.env.VITE_SERVER_PORT}/api/forms/recent`)
+      .get(`${apiBaseUrl}/api/forms/recent`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       .then((res) => setRecentForms(res.data))
       .catch((err) => console.error("Error fetching forms:", err));
   }, []);
 
   useEffect(() => {
+    const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+    const token = localStorage.getItem('token');
+    if (!apiBaseUrl) {
+      console.error("VITE_SERVER_PORT is not defined");
+      return;
+    }
     axios
-      .get(`${import.meta.env.VITE_SERVER_PORT}/admin/dashboard/stats`)
+      .get(`${apiBaseUrl}/admin/dashboard/stats`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
       .then((res) => {
         setStats({
           totalForms: res.data.totalForms,

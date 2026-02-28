@@ -18,82 +18,82 @@ const Login = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (userType === "employee") {
-      try {
-        // For employee login, fetch user by email (GET request)
-        const res = await fetch(
-          `${import.meta.env.VITE_SERVER_PORT}/api/employees/email/${email}`,
-          {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
-          }
-        );
+    const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+    if (!apiBaseUrl) {
+      console.error("VITE_SERVER_PORT is not defined in .env file");
+      showMessage("error", "Server configuration error. Please contact admin.");
+      return;
+    }
 
-        if (!res.ok) {
-          // If response is not OK (e.g., 404 Not Found)
-          const errorText = await res.text();
-          let errorMessage =
-            "Login failed. Employee not found or network error.";
-          try {
-            const errorData = JSON.parse(errorText);
-            errorMessage = errorData.message || res.statusText || errorMessage;
-          } catch (parseError) {
-            errorMessage = errorText || res.statusText || errorMessage;
-          }
-          showMessage("error", errorMessage);
-          return;
+    try {
+      // Use the unified login endpoint for both Employee and Admin
+      const res = await fetch(
+        `${apiBaseUrl}/api/employees/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
         }
+      );
 
-        const user = await res.json();
-        console.log("Employee login successful:", user);
-
-        // Store user data in localStorage consistently
-        localStorage.setItem("employeeId", user.id);
-        localStorage.setItem("userType", userType); // Store the selected userType
-        localStorage.setItem("employeeName", user.name);
-        // localStorage.setItem("userEmail", user.email); // Store email
-        localStorage.setItem(
-          "loggedInUser",
-          JSON.stringify({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            type: userType, // Use the selected userType
-          })
-        );
-
-        setUser({ ...user, type: userType }); // Update parent component state
-        navigate("/employee/dashboard");
-        showMessage("success", "Employee login successful!");
-      } catch (error) {
-        console.error("Error during Employee Login:", error);
-        showMessage(
-          "error",
-          "Login failed. Please check your credentials and try again."
-        );
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorMessage = "Login failed. Please check your credentials.";
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || res.statusText || errorMessage;
+        } catch (parseError) {
+          errorMessage = errorText || res.statusText || errorMessage;
+        }
+        showMessage("error", errorMessage);
+        return;
       }
-    } else {
-      // Mock admin login
-      // In a real app, this would involve a separate API call to an admin authentication service
-      const adminUser = {
-        id: "admin-id-001", // A mock ID for admin
-        email: email, // Use the entered email for mock admin
-        type: "admin",
-        name: "Admin User", // Mock name
+
+      const authResponse = await res.json();
+      console.log("Login successful:", authResponse);
+
+      if (!authResponse || !authResponse.token) {
+        console.error("Auth response missing token:", authResponse);
+        showMessage("error", "Login failed. Invalid response from server.");
+        return;
+      }
+
+      // Store user data and token in localStorage consistently
+      localStorage.setItem("token", authResponse.token);
+      localStorage.setItem("employeeId", authResponse.id);
+      localStorage.setItem("employeeName", authResponse.name);
+      
+      // Determine userType based on backend role
+      const backendRole = authResponse.role; // e.g., "ADMIN" or "EMPLOYEE"
+      const normalizedUserType = backendRole.toLowerCase();
+      localStorage.setItem("userType", normalizedUserType);
+      
+      const userData = {
+        id: authResponse.id,
+        name: authResponse.name,
+        email: authResponse.email,
+        type: normalizedUserType,
+        role: backendRole
       };
 
-      // Basic mock authentication check (e.g., specific email/password)
-      if (email === "admin@evalease.com" && password === "adminpass") {
-        setUser(adminUser);
-        localStorage.setItem("loggedInUser", JSON.stringify(adminUser));
-        localStorage.setItem("userType", "admin");
-        localStorage.setItem("userEmail", adminUser.email);
-        localStorage.setItem("employeeName", adminUser.name); // Storing admin name in employeeName for simplicity
-        navigate("/admin/dashboard");
-        showMessage("success", "Admin login successful!");
+      localStorage.setItem("loggedInUser", JSON.stringify(userData));
+
+      setUser(userData); // Update parent component state
+      
+      // Redirect based on role
+      if (backendRole === "ADMIN") {
+        setTimeout(() => navigate("/admin/dashboard"), 100);
       } else {
-        showMessage("error", "Invalid admin credentials.");
+        setTimeout(() => navigate("/employee/dashboard"), 100);
       }
+      
+      showMessage("success", "Login successful!");
+    } catch (error) {
+      console.error("Error during Login:", error);
+      showMessage(
+        "error",
+        "Login failed. Please check your credentials and try again."
+      );
     }
   };
 

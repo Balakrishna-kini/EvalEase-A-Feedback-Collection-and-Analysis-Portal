@@ -1,0 +1,45 @@
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: formcollectionn
+      MYSQL_ROOT_PASSWORD: balu2004
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/formcollectionn
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: balu2004
+      ALLOWED_ORIGINS: "http://localhost"
+      PORT: 8080
+    depends_on:
+      - db
+
+  sentiment-api:
+    build: ./feedback-sentiment-api
+    restart: always
+    ports:
+      - "5000:5000"
+
+  frontend:
+    build: 
+      context: ./frontend
+      args:
+        VITE_SERVER_PORT: "http://localhost:8080"
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

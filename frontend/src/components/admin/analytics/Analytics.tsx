@@ -11,59 +11,95 @@ import {
   PieChart,
   Pie,
   Cell,
+  Legend
 } from "recharts";
 import {
   getForms,
-  getAllFormSentiments,
-  getResponseCounts,
-} from "@/services/api"; // ✅ updated
-import { useNavigate } from "react-router-dom";
+  getAverageSentimentAllForms,
+  getResponseCountPerForm,
+  getSuggestions,
+  getTopPerformersSummary
+} from "@/services/api";
+import { useNavigate, Link } from "react-router-dom";
+import { 
+  BarChart3, 
+  PieChart as PieIcon, 
+  MessageSquare, 
+  Users, 
+  ArrowRight,
+  TrendingUp,
+  Activity,
+  Sparkles,
+  Zap,
+  Info,
+  ChevronDown,
+  Award,
+  ThumbsUp
+} from "lucide-react";
 
-const Analytics = () => {
+interface Suggestion {
+  category: string;
+  observation: string;
+  actionableStep: string;
+  priority: string;
+}
+
+interface SummaryData {
+  topRatedForm: string;
+  topRating: number;
+  topSentimentForm: string;
+  topSentiment: number;
+  totalForms: number;
+  totalResponses: number;
+}
+
+const Analytics: React.FC = () => {
   const navigate = useNavigate();
-  const [forms, setForms] = useState([]);
-  const [sentimentData, setSentimentData] = useState([]);
-  const [responseCounts, setResponseCounts] = useState([]);
-  const [selectedFormId, setSelectedFormId] = useState(null);
-  const [suggestions, setSuggestions] = useState([]);
+  const [forms, setForms] = useState<any[]>([]);
+  const [sentimentData, setSentimentData] = useState<any[]>([]);
+  const [responseCounts, setResponseCounts] = useState<any[]>([]);
+  const [selectedFormId, setSelectedFormId] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [summary, setSummary] = useState<SummaryData | null>(null);
 
   useEffect(() => {
-    getAllFormSentiments()
+    if (selectedFormId) {
+      setLoadingSuggestions(true);
+      getSuggestions(Number(selectedFormId))
+        .then((res) => setSuggestions(res.data))
+        .catch((err) => console.error("Failed to fetch suggestions", err))
+        .finally(() => setLoadingSuggestions(false));
+    } else {
+      setSuggestions([]);
+    }
+  }, [selectedFormId]);
+
+  useEffect(() => {
+    getTopPerformersSummary()
+      .then((res) => setSummary(res.data))
+      .catch((err) => console.error("Failed to fetch summary", err));
+
+    getAverageSentimentAllForms()
       .then((res) => setSentimentData(res.data))
       .catch((err) => console.error("Failed to fetch sentiment data", err));
 
-    getResponseCounts()
+    getResponseCountPerForm()
       .then((res) => setResponseCounts(res.data))
       .catch((err) => console.error("Failed to fetch response counts", err));
-  }, []);
 
-  useEffect(() => {
     getForms()
       .then((res) => setForms(res.data))
       .catch((err) => console.error(err));
   }, []);
 
-  useEffect(() => {
-    if (selectedFormId) {
-      // Fetch suggestions for the selected form with the updated endpoint
-      fetch(
-        `${
-          import.meta.env.VITE_SERVER_PORT
-        }/api/forms/suggestions/${selectedFormId}`
-      )
-        .then((res) => res.json())
-        .then((data) => setSuggestions(data))
-        .catch((err) => console.error("Failed to fetch suggestions", err));
-    }
-  }, [selectedFormId]);
-
   const participationData = responseCounts.map((item) => ({
-    form: item.form, // ✅ changed from session → form
+    name: item.form.length > 15 ? `${item.form.substring(0, 15)}...` : item.form,
+    fullName: item.form,
     responses: item.responses,
   }));
 
   const sentimentCounts = {};
-
   sentimentData.forEach((form) => {
     const category = form.category;
     sentimentCounts[category] = (sentimentCounts[category] || 0) + 1;
@@ -85,169 +121,246 @@ const Analytics = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Analytics Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Training feedback insights and performance metrics
-          </p>
+    <div className="min-h-screen bg-gray-50 pb-12">
+      {/* Sticky Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 mb-8">
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="bg-blue-600 p-2 rounded-lg">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-xl font-bold text-gray-900">Analytics Overview</h1>
+          </div>
+          <div className="flex items-center space-x-2 text-sm text-gray-500 font-medium">
+            <Activity className="w-4 h-4 text-green-500 animate-pulse" />
+            <span>Live System Metrics</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Top Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card className="border-none shadow-sm rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 text-white">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-blue-100 text-sm font-medium mb-1 uppercase tracking-wider">Total Active Forms</p>
+                  <p className="text-4xl font-bold">{summary?.totalForms || forms.length}</p>
+                </div>
+                <div className="bg-white/20 p-2 rounded-xl">
+                  <TrendingUp className="w-6 h-6" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-none shadow-sm rounded-2xl overflow-hidden bg-white">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Overall Responses</p>
+                  <p className="text-4xl font-bold text-gray-900">
+                    {summary?.totalResponses || responseCounts.reduce((acc, curr) => acc + curr.responses, 0)}
+                  </p>
+                </div>
+                <div className="bg-green-50 p-2 rounded-xl">
+                  <Users className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm rounded-2xl overflow-hidden bg-white">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Global Avg. Sentiment</p>
+                  <p className="text-4xl font-bold text-gray-900">
+                    {sentimentData.length > 0 
+                      ? `${((sentimentData.reduce((acc, curr) => acc + curr.averageSentiment, 0) / sentimentData.length) * 100).toFixed(0)}%`
+                      : '0%'}
+                  </p>
+                </div>
+                <div className="bg-purple-50 p-2 rounded-xl">
+                  <MessageSquare className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* 🔹 Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Pie Chart - Satisfaction */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Rating Distribution</CardTitle>
+        {/* Quick Insights Row */}
+        {summary && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <Card className="border-none shadow-sm rounded-2xl bg-white border-l-4 border-l-amber-500">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="p-3 bg-amber-50 rounded-xl">
+                  <Award className="w-6 h-6 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Top Rated Session</p>
+                  <p className="text-lg font-bold text-gray-900 line-clamp-1">{summary.topRatedForm}</p>
+                  <div className="flex items-center space-x-1 mt-1">
+                    <ThumbsUp className="w-3 h-3 text-amber-500" />
+                    <span className="text-xs font-bold text-amber-600">{summary.topRating.toFixed(1)} / 5.0 Rating</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-sm rounded-2xl bg-white border-l-4 border-l-green-500">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="p-3 bg-green-50 rounded-xl">
+                  <Sparkles className="w-6 h-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Highest Sentiment</p>
+                  <p className="text-lg font-bold text-gray-900 line-clamp-1">{summary.topSentimentForm}</p>
+                  <div className="flex items-center space-x-1 mt-1">
+                    <Activity className="w-3 h-3 text-green-500" />
+                    <span className="text-xs font-bold text-green-600">{(summary.topSentiment * 100).toFixed(0)}% Positive Vibes</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* 🔹 Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="px-8 pt-8 pb-0">
+              <div className="flex items-center space-x-2 mb-1">
+                <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
+                <CardTitle className="text-lg font-bold text-gray-800">Participation by Form</CardTitle>
+              </div>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-widest">Responses per training session</p>
             </CardHeader>
-            <CardContent>
-              {ratingDistribution.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
+            <CardContent className="p-8">
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={participationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis 
+                      dataKey="name" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                    />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: '#94a3b8', fontSize: 11, fontWeight: 500 }}
+                    />
+                    <Tooltip 
+                      cursor={{ fill: '#f8fafc' }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                      labelFormatter={(value, name) => participationData.find(d => d.name === value)?.fullName || value}
+                    />
+                    <Bar dataKey="responses" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={32} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="px-8 pt-8 pb-0">
+              <div className="flex items-center space-x-2 mb-1">
+                <div className="w-1 h-4 bg-purple-600 rounded-full"></div>
+                <CardTitle className="text-lg font-bold text-gray-800">Sentiment Distribution</CardTitle>
+              </div>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-widest">Global sentiment across all forms</p>
+            </CardHeader>
+            <CardContent className="p-8">
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={ratingDistribution}
                       cx="50%"
                       cy="50%"
+                      innerRadius={70}
                       outerRadius={100}
+                      paddingAngle={8}
                       dataKey="value"
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                      }
                     >
                       {ratingDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" />
                   </PieChart>
                 </ResponsiveContainer>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No rating data available.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Bar Chart - Participation */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Form Participation</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {participationData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={participationData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="form" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="responses" fill="#10b981" name="Responses" />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No participation data available.
-                </p>
-              )}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* 🔹 Forms List */}
-        <div className="mt-10">
-          <h2 className="text-xl font-semibold mb-4">All Forms</h2>
-          {forms.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {forms.map((form) => (
-                <div
-                  key={form.id}
-                  className="bg-white shadow-md rounded-2xl p-4 flex justify-between items-center"
+        {/* 🔹 Detailed List View */}
+        <div className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-800">Training Forms List</h2>
+            <Link to="/admin/forms" className="text-sm font-bold text-blue-600 hover:text-blue-700 flex items-center">
+              Create New <ArrowRight className="ml-1 w-4 h-4" />
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {forms.map((form) => {
+              const formSentiment = sentimentData.find(s => s.formId === form.id);
+              return (
+                <Card 
+                  key={form.id} 
+                  className="group border-none shadow-sm hover:shadow-xl transition-all rounded-3xl overflow-hidden cursor-pointer bg-white"
+                  onClick={() => navigate(`/admin/analytics/${form.id}`)}
                 >
-                  <div>
-                    <h2 className="text-lg font-semibold">
-                      Form ID: {form.id}
-                    </h2>
-                    <p className="text-gray-500">Trainer: {form.trainerName}</p>
-                  </div>
-                  <button
-                    onClick={() => navigate(`/admin/analytics/${form.id}`)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl"
-                  >
-                    View Analytics
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm">No forms available.</p>
-          )}
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="bg-blue-50 p-2 rounded-xl group-hover:bg-blue-600 transition-colors">
+                        <Activity className="w-5 h-5 text-blue-600 group-hover:text-white" />
+                      </div>
+                      {formSentiment && (
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tighter ${
+                          formSentiment.category === 'Very Positive' ? 'bg-green-100 text-green-700' :
+                          formSentiment.category === 'Positive' ? 'bg-blue-100 text-blue-700' :
+                          'bg-amber-100 text-amber-700'
+                        }`}>
+                          {formSentiment.category}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">{form.title}</h3>
+                    <p className="text-sm text-gray-500 mb-6 line-clamp-2 min-h-[40px]">{form.description}</p>
+                    
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Responses</span>
+                          <span className="text-sm font-bold text-gray-800">
+                            {responseCounts.find(r => r.form === form.title)?.responses || 0}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                        <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         </div>
-
-        {/* 🔹 Form Selector and Suggestions */}
-        <Card className="mt-10">
-          <CardHeader>
-            <CardTitle className="mb-4">Trainer Suggestions</CardTitle>
-            <div className="flex gap-2 items-center">
-              <label htmlFor="form-select" className="text-sm text-gray-600">
-                Select Form:
-              </label>
-              <select
-                id="form-select"
-                className="border rounded px-2 py-1 text-sm"
-                value={selectedFormId || ""}
-                onChange={(e) => setSelectedFormId(Number(e.target.value))}
-              >
-                <option value="" disabled>
-                  Select a form
-                </option>
-                {forms.map((form) => (
-                  <option key={form.id} value={form.id}>
-                    {form.title} (ID: {form.id})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {selectedFormId ? (
-              suggestions.length > 0 ? (
-                <ul className="space-y-4">
-                  {suggestions.map((sug, idx) => (
-                    <li
-                      key={idx}
-                      className="bg-white p-4 rounded-xl shadow-sm border"
-                    >
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                        {sug.question}
-                      </h3>
-                      <p className="text-sm text-gray-600 mb-1">
-                        <strong>Observation:</strong> {sug.reason}
-                      </p>
-                      <p className="text-sm text-green-700">
-                        <strong>Suggestion:</strong> {sug.suggestion}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-500 text-sm">
-                  No suggestions available for this form.
-                </p>
-              )
-            ) : (
-              <p className="text-gray-500 text-sm">
-                Please select a form to see suggestions.
-              </p>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
 };
 
 export default Analytics;
+
+

@@ -1,0 +1,59 @@
+# IDEs and Editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+target/
+dist/
+build/
+out/
+*.class
+*.jar
+*.war
+*.ear
+
+# Dependency directories
+node_modules/
+.npm/
+.yarn/
+.pnp.*
+.pnp
+bun.lockb
+
+# Frontend specific (frontend/)
+frontend/.env
+frontend/dist/
+frontend/node_modules/
+
+# Backend specific (backend/)
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/.DS_Store
+
+# Python specific (feedback-sentiment-api/)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+feedback-sentiment-api/__pycache__/
+feedback-sentiment-api/venv/
+feedback-sentiment-api/node_modules/
+
+# Docker
+.docker/
+
+# OS files
+Desktop.ini

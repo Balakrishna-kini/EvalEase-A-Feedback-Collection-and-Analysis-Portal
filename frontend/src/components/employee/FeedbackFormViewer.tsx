@@ -10,7 +10,12 @@ const FeedbackFormViewer = () => {
   const [hoveredRating, setHoveredRating] = useState({});
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_SERVER_PORT}/api/forms/${id}`)
+    const token = localStorage.getItem('token');
+    fetch(`${import.meta.env.VITE_SERVER_PORT}/api/forms/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
       .then((res) => res.json())
       .then((data) => {
         setForm(data);
@@ -24,6 +29,7 @@ const FeedbackFormViewer = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem('token');
     const payload = {
       formId: id,
       responses: answers,
@@ -36,7 +42,10 @@ const FeedbackFormViewer = () => {
         `${import.meta.env.VITE_SERVER_PORT}/api/responses`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify(payload),
         }
       );

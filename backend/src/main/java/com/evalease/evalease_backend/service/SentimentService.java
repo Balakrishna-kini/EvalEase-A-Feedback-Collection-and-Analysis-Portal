@@ -1,6 +1,9 @@
 package com.evalease.evalease_backend.service;
 
+import com.evalease.evalease_backend.entity.Response;
+import com.evalease.evalease_backend.repository.ResponseRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
@@ -10,11 +13,33 @@ import com.evalease.evalease_backend.dto.SentimentResult;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
 public class SentimentService {
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ResponseRepository responseRepository;
     private static final String SENTIMENT_API_URL = "http://localhost:5000/analyze";
+
+    public SentimentService(ResponseRepository responseRepository) {
+        this.responseRepository = responseRepository;
+    }
+
+    @Async
+    public void processResponseSentimentAsync(Long responseId) {
+        try {
+            Response response = responseRepository.findById(responseId).orElse(null);
+            if (response == null || response.getAnswer() == null) return;
+
+            // Only analyze text-based responses
+            String type = response.getQuestion().getType();
+            if (type.equalsIgnoreCase("paragraph") || type.equalsIgnoreCase("text") || type.equalsIgnoreCase("textarea")) {
+                SentimentResult result = analyzeSentiment(response.getAnswer());
+                response.setSentimentScore(result.getScore());
+                responseRepository.save(response);
+            }
+        } catch (Exception e) {
+            System.err.println("Async sentiment analysis failed for response " + responseId + ": " + e.getMessage());
+        }
+    }
 
     public SentimentResult analyzeSentiment(String text) {
         try {
@@ -33,10 +58,42 @@ public class SentimentService {
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 return response.getBody();
             } else {
-                return new SentimentResult("neutral", 0.0);
+                return analyzeSentimentFallback(text);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // e.printStackTrace(); // Avoid console clutter
+            return analyzeSentimentFallback(text);
+        }
+    }
+
+    private SentimentResult analyzeSentimentFallback(String text) {
+        if (text == null || text.trim().isEmpty()) {
+            return new SentimentResult("neutral", 0.0);
+        }
+
+        String lowerText = text.toLowerCase();
+        
+        // Simple keyword-based sentiment for college project reliability
+        List<String> positiveWords = List.of("good", "great", "excellent", "amazing", "useful", "helpful", "clear", "well", "positive", "happy", "satisfied", "learned", "informative");
+        List<String> negativeWords = List.of("bad", "poor", "confusing", "boring", "slow", "fast", "unclear", "hard", "negative", "disappointed", "dissatisfied", "waste", "long");
+
+        int positiveCount = 0;
+        int negativeCount = 0;
+
+        for (String word : positiveWords) {
+            if (lowerText.contains(word)) positiveCount++;
+        }
+        for (String word : negativeWords) {
+            if (lowerText.contains(word)) negativeCount++;
+        }
+
+        if (positiveCount > negativeCount) {
+            double score = 0.2 + (Math.min(0.8, (positiveCount - negativeCount) * 0.1));
+            return new SentimentResult("positive", score);
+        } else if (negativeCount > positiveCount) {
+            double score = -0.2 - (Math.min(0.8, (negativeCount - positiveCount) * 0.1));
+            return new SentimentResult("negative", score);
+        } else {
             return new SentimentResult("neutral", 0.0);
         }
     }

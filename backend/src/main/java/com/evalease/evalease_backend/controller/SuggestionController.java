@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/forms/suggestions")
+@RequestMapping("/api/suggestions")
 @CrossOrigin(origins = "http://localhost:8081")
 public class SuggestionController {
 

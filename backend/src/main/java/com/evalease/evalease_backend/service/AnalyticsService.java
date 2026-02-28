@@ -43,22 +43,39 @@ public class AnalyticsService {
             String title = question.getTitle();
             Map<String, Long> optionCounts = new HashMap<>();
 
-            List<Response> responses = responseRepository.findAll().stream()
-                    .filter(resp -> resp.getQuestion().getId().equals(question.getId()))
-                    .collect(Collectors.toList());
+            // Efficiently fetch only responses for the current question
+            List<Response> responses = responseRepository.findByQuestionId(question.getId());
 
             if (type.equalsIgnoreCase("paragraph") || type.equalsIgnoreCase("text") || type.equalsIgnoreCase("textarea")) {
-                List<String> textAnswers = responses.stream()
-                        .map(Response::getAnswer)
-                        .filter(Objects::nonNull)
-                        .filter(ans -> !ans.trim().isEmpty())
-                        .collect(Collectors.toList());
+                // Use cached sentiment scores if available
+                long positive = responses.stream()
+                        .filter(resp -> resp.getSentimentScore() != null && resp.getSentimentScore() > 0.1)
+                        .count();
+                long negative = responses.stream()
+                        .filter(resp -> resp.getSentimentScore() != null && resp.getSentimentScore() < -0.1)
+                        .count();
+                long neutral = responses.stream()
+                        .filter(resp -> resp.getSentimentScore() != null && resp.getSentimentScore() >= -0.1 && resp.getSentimentScore() <= 0.1)
+                        .count();
 
-                if (!textAnswers.isEmpty()) {
-                    SentimentResult sentimentResult = sentimentService.analyzeSentimentBatch(textAnswers);
-                    optionCounts.put("Positive", (long) sentimentResult.getPositiveCount());
-                    optionCounts.put("Negative", (long) sentimentResult.getNegativeCount());
-                    optionCounts.put("Neutral", (long) sentimentResult.getNeutralCount());
+                // If some responses are missing scores (e.g., from before the update), fallback to batch analysis
+                if (positive + negative + neutral < responses.size()) {
+                    List<String> textAnswers = responses.stream()
+                            .map(Response::getAnswer)
+                            .filter(Objects::nonNull)
+                            .filter(ans -> !ans.trim().isEmpty())
+                            .collect(Collectors.toList());
+
+                    if (!textAnswers.isEmpty()) {
+                        SentimentResult sentimentResult = sentimentService.analyzeSentimentBatch(textAnswers);
+                        optionCounts.put("Positive", (long) sentimentResult.getPositiveCount());
+                        optionCounts.put("Negative", (long) sentimentResult.getNegativeCount());
+                        optionCounts.put("Neutral", (long) sentimentResult.getNeutralCount());
+                    }
+                } else {
+                    optionCounts.put("Positive", positive);
+                    optionCounts.put("Negative", negative);
+                    optionCounts.put("Neutral", neutral);
                 }
             } else if (type.equalsIgnoreCase("checkbox")) {
                 for (Response response : responses) {
@@ -131,7 +148,8 @@ public class AnalyticsService {
         dto.setFormId(formId);
         dto.setQuestionCount(form.getQuestions().size());
         dto.setTotalResponses(submittedForms.size());
-        dto.setAverageRating(ratingCount > 0 ? totalRating / ratingCount : 0.0);
+        double avg = ratingCount > 0 ? totalRating / ratingCount : 0.0;
+        dto.setAverageRating(Math.min(5.0, avg));
         dto.setSentiment(sentimentResult);
         dto.setQuestions(getQuestionAnalyticsByFormId(formId));
 

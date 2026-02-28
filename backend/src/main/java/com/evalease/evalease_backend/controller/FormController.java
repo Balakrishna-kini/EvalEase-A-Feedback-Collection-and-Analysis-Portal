@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/forms")
-@CrossOrigin(origins = "http://localhost:8081") // Adjust based on frontend port
+@CrossOrigin(origins = "http://localhost:8081")
 public class FormController {
 
     @Autowired

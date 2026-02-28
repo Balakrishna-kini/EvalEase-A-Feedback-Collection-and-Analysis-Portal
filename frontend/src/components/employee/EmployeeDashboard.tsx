@@ -6,7 +6,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-const EmployeeDashboard = ({ user }) => {
+const EmployeeDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const [pendingForms, setPendingForms] = useState([]);
   const [completedForms, setCompletedForms] = useState([]);
@@ -14,9 +14,7 @@ const EmployeeDashboard = ({ user }) => {
   const [errorForms, setErrorForms] = useState(null);
 
   const handleLogout = () => {
-    localStorage.removeItem("employeeId");
-    localStorage.removeItem("userType");
-    localStorage.removeItem("employeeName");
+    onLogout();
     navigate("/login");
   };
 
@@ -24,9 +22,8 @@ const EmployeeDashboard = ({ user }) => {
   const fetchEmployeeForms = useCallback(async () => {
     setLoadingForms(true);
     setErrorForms(null);
-    const employeeId = localStorage.getItem("employeeId"); // Get employeeId from local storage
 
-    if (!employeeId) {
+    if (!user?.id) {
       setErrorForms("Employee ID not found. Please log in.");
       setLoadingForms(false);
       return;
@@ -34,13 +31,24 @@ const EmployeeDashboard = ({ user }) => {
 
     try {
       // Call the backend endpoint that categorizes forms for the employee
-      const res = await fetch(
-        `${
-          import.meta.env.VITE_SERVER_PORT
-        }/api/employee-dashboard/forms/${employeeId}`
-      );
+      const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+      if (!apiBaseUrl) {
+        throw new Error("VITE_SERVER_PORT is not defined");
+      }
+      
+      const fetchUrl = `${apiBaseUrl}/api/employee-dashboard/forms/${user.id}`;
+      console.log("Fetching forms for employee ID:", user.id);
+      console.log("Full fetch URL:", fetchUrl);
+
+      const token = localStorage.getItem('token');
+      const res = await fetch(fetchUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
 
@@ -54,11 +62,11 @@ const EmployeeDashboard = ({ user }) => {
       setCompletedForms(completedForms);
     } catch (err) {
       console.error("Failed to fetch employee forms", err);
-      setErrorForms("Failed to load feedback forms. Please try again.");
+      setErrorForms(`Error: ${err.message}. Please check if the server is running and the URL is correct.`);
     } finally {
       setLoadingForms(false);
     }
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     fetchEmployeeForms();

@@ -1,11 +1,14 @@
 package com.evalease.evalease_backend.repository;
+import java.util.List;
+import com.evalease.evalease_backend.entity.Response;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.evalease.evalease_backend.entity.Response;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 public interface ResponseRepository extends JpaRepository<Response, Long> {
+    
+    List<Response> findByQuestionId(Long questionId);
+
     @Query("SELECT COUNT(r) FROM Response r WHERE r.submittedForm.form.id = :formId")
     long countByFormId(@Param("formId") Long formId);
     long countBySubmittedForm_Form_Id(Long formId);

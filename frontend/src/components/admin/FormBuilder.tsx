@@ -108,6 +108,13 @@ const FormBuilder = () => {
   };
 
   const saveForm = async () => {
+    const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+    if (!apiBaseUrl) {
+      console.error("VITE_SERVER_PORT is not defined in .env file");
+      toast.error("Server configuration error. Please contact admin.");
+      return;
+    }
+
     if (!formTitle) {
       alert("Form title is required.");
       return;
@@ -146,10 +153,12 @@ const FormBuilder = () => {
     };
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_SERVER_PORT}/api/forms`, {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${apiBaseUrl}/api/forms`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(formData),
       });

@@ -29,20 +29,29 @@ const Signup = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+    if (!apiBaseUrl) {
+      console.error("VITE_SERVER_PORT is not defined in .env file");
+      showMessage("error", "Server configuration error. Please contact admin.");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       showMessage("error", "Passwords do not match!");
       return;
     }
 
-    // Only send fields that exist in your SignupRequest DTO (name and email)
+    // Send name, email, password, and role (userType)
     const payload = {
       name: formData.name,
       email: formData.email,
+      password: formData.password,
+      role: formData.userType.toUpperCase(),
     };
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_SERVER_PORT}/api/employees`,
+        `${apiBaseUrl}/api/employees`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -72,33 +81,40 @@ const Signup = ({ setUser }) => {
         return;
       }
 
-      const user = await res.json();
-      console.log("Signup successful:", user);
+      const authResponse = await res.json();
+      console.log("Signup successful:", authResponse);
 
-      // Store user data in localStorage consistently with login
-      localStorage.setItem("employeeId", user.id);
+      if (!authResponse || !authResponse.token) {
+        console.error("Signup response missing token:", authResponse);
+        showMessage("error", "Signup failed. Invalid response from server.");
+        return;
+      }
+
+      // Store user data and token in localStorage consistently
+      localStorage.setItem("token", authResponse.token);
+      localStorage.setItem("employeeId", authResponse.id);
       localStorage.setItem("userType", formData.userType);
-      localStorage.setItem("employeeName", user.name);
-      // localStorage.setItem("userEmail", user.email);
-      localStorage.setItem(
-        "loggedInUser",
-        JSON.stringify({
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          type: formData.userType,
-        })
-      );
+      localStorage.setItem("employeeName", authResponse.name);
+      
+      const userData = {
+        id: authResponse.id,
+        name: authResponse.name,
+        email: authResponse.email,
+        type: formData.userType,
+        role: authResponse.role
+      };
 
-      setUser({ ...user, type: formData.userType }); // Update parent component state
+      localStorage.setItem("loggedInUser", JSON.stringify(userData));
+
+      setUser(userData); // Update parent component state
 
       // Navigate based on user type
       if (formData.userType === "admin") {
-        navigate("/admin/dashboard");
+        setTimeout(() => navigate("/admin/dashboard"), 100);
       } else {
-        navigate("/employee/dashboard");
+        setTimeout(() => navigate("/employee/dashboard"), 100);
       }
-      showMessage("success", "Account created successfully!");
+      showMessage("success", "Signup successful!");
     } catch (err) {
       console.error("Signup failed", err);
       showMessage(

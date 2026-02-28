@@ -1,60 +1,66 @@
 import React from 'react';
-import { Pie } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 interface McqChartProps {
   data: { [option: string]: number };
 }
 
+const COLORS = [
+  '#3b82f6', // blue
+  '#10b981', // green
+  '#f59e0b', // amber
+  '#ef4444', // red
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+];
+
 const McqChart: React.FC<McqChartProps> = ({ data }) => {
   if (!data || Object.keys(data).length === 0) {
-    return <div>No multiple choice data available</div>;
+    return <div className="flex items-center justify-center h-full text-gray-500 italic">No multiple choice data available</div>;
   }
 
-  const chartData = {
-    labels: Object.keys(data),
-    datasets: [
-      {
-        data: Object.values(data),
-        backgroundColor: [
-          '#60a5fa', // blue
-          '#facc15', // yellow
-          '#f87171', // red
-          '#34d399', // green
-          '#a78bfa', // purple
-          '#f472b6', // pink
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'right' as const,
-      },
-      tooltip: {
-        callbacks: {
-          label: (context: any) => {
-            const label = context.label || '';
-            const value = context.raw || 0;
-            const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-            const percentage = Math.round((value / total) * 100);
-            return `${label}: ${value} (${percentage}%)`;
-          },
-        },
-      },
-    },
-  };
+  const chartData = Object.entries(data).map(([name, value]) => ({ name, value }));
+  const total = chartData.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <div className="w-full h-[300px]">
-      <Pie data={chartData} options={options} />
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie
+            data={chartData}
+            cx="50%"
+            cy="50%"
+            innerRadius={60}
+            outerRadius={90}
+            paddingAngle={5}
+            dataKey="value"
+          >
+            {chartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip 
+            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+            formatter={(value: number, name: string) => {
+              const percentage = ((value / total) * 100).toFixed(1);
+              return [`${value} (${percentage}%)`, name];
+            }}
+          />
+          <Legend 
+            verticalAlign="bottom" 
+            height={36} 
+            iconType="circle"
+            formatter={(value) => <span className="text-gray-600 text-sm font-medium">{value}</span>}
+          />
+        </PieChart>
+      </ResponsiveContainer>
     </div>
   );
 };
