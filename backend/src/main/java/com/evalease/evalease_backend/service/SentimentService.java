@@ -17,7 +17,14 @@ public class SentimentService {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ResponseRepository responseRepository;
-    private static final String SENTIMENT_API_URL = "http://localhost:5000/analyze";
+    
+    private String getSentimentApiUrl() {
+        String envUrl = System.getenv("SENTIMENT_API_URL");
+        if (envUrl != null && !envUrl.isEmpty()) {
+            return envUrl.endsWith("/") ? envUrl + "api/sentiment" : envUrl + "/api/sentiment";
+        }
+        return "http://localhost:5000/api/sentiment";
+    }
 
     public SentimentService(ResponseRepository responseRepository) {
         this.responseRepository = responseRepository;
@@ -52,7 +59,7 @@ public class SentimentService {
             HttpEntity<Map<String, String>> request = new HttpEntity<>(requestBody, headers);
 
             ResponseEntity<SentimentResult> response = restTemplate.postForEntity(
-                    SENTIMENT_API_URL, request, SentimentResult.class
+                    getSentimentApiUrl(), request, SentimentResult.class
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
