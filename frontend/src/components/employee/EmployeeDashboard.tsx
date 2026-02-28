@@ -5,6 +5,7 @@ import {
   FileText,
   LogOut,
 } from "lucide-react";
+import { API_BASE_URL } from "../../config";
 
 const EmployeeDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -31,9 +32,9 @@ const EmployeeDashboard = ({ user, onLogout }) => {
 
     try {
       // Call the backend endpoint that categorizes forms for the employee
-      const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+      const apiBaseUrl = API_BASE_URL;
       if (!apiBaseUrl) {
-        throw new Error("VITE_SERVER_PORT is not defined");
+        throw new Error("API_BASE_URL is not defined in config.ts");
       }
       
       const fetchUrl = `${apiBaseUrl}/api/employee-dashboard/forms/${user.id}`;

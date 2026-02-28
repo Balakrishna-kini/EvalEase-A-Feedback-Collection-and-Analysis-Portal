@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { API_BASE_URL } from "../../config";
 
 const FeedbackFormViewer = () => {
   const { id } = useParams(); // form id from route
@@ -11,7 +12,7 @@ const FeedbackFormViewer = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch(`${import.meta.env.VITE_SERVER_PORT}/api/forms/${id}`, {
+    fetch(`${API_BASE_URL}/api/forms/${id}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -39,7 +40,7 @@ const FeedbackFormViewer = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_SERVER_PORT}/api/responses`,
+        `${API_BASE_URL}/api/responses`,
         {
           method: "POST",
           headers: { 

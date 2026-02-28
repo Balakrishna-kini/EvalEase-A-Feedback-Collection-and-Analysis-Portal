@@ -9,6 +9,7 @@ import {
   TrendingUp,
   LogOut,
 } from "lucide-react";
+import { API_BASE_URL } from "../../config";
 
 const AdminDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -60,10 +61,10 @@ const AdminDashboard = ({ user, onLogout }) => {
   ];
 
   useEffect(() => {
-    const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+    const apiBaseUrl = API_BASE_URL;
     const token = localStorage.getItem('token');
     if (!apiBaseUrl) {
-      console.error("VITE_SERVER_PORT is not defined");
+      console.error("API_BASE_URL is not defined in config.ts");
       return;
     }
     axios
@@ -75,10 +76,10 @@ const AdminDashboard = ({ user, onLogout }) => {
   }, []);
 
   useEffect(() => {
-    const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+    const apiBaseUrl = API_BASE_URL;
     const token = localStorage.getItem('token');
     if (!apiBaseUrl) {
-      console.error("VITE_SERVER_PORT is not defined");
+      console.error("API_BASE_URL is not defined in config.ts");
       return;
     }
     axios

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { User, Lock, Mail, UserPlus, XCircle } from "lucide-react";
+import { API_BASE_URL } from "../../config";
 
 const Signup = ({ setUser }) => {
   const [formData, setFormData] = useState({
@@ -29,9 +30,9 @@ const Signup = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+    const apiBaseUrl = API_BASE_URL;
     if (!apiBaseUrl) {
-      console.error("VITE_SERVER_PORT is not defined in .env file");
+      console.error("API_BASE_URL is not defined in config.ts");
       showMessage("error", "Server configuration error. Please contact admin.");
       return;
     }
