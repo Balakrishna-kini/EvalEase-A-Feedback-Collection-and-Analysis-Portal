@@ -23,6 +23,9 @@ public class JwtUtil {
     private long expiration;
 
     private SecretKey getSigningKey() {
+        if (secret == null || secret.length() < 32) {
+            throw new RuntimeException("JWT Secret is too short. It must be at least 256 bits (32 characters). Current length: " + (secret != null ? secret.length() : 0));
+        }
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
