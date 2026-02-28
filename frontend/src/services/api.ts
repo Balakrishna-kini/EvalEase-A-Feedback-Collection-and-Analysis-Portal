@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const apiBaseUrl = import.meta.env.VITE_SERVER_PORT;
+const apiBaseUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_SERVER_PORT;
 if (!apiBaseUrl) {
-  console.error("VITE_SERVER_PORT is not defined in .env file");
+  console.error("Neither VITE_API_URL nor VITE_SERVER_PORT is defined");
 }
 
 const BASE_URL = `${apiBaseUrl}/api/analytics`;
