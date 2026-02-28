@@ -14,7 +14,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/employee-dashboard") // New, more specific base path
-@CrossOrigin(origins = "http://localhost:8081")
 public class EmployeeDashboardController { // Renamed controller
 
     @Autowired

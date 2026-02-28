@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF for JWT based auth
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // Explicitly permit all preflight requests
                         .requestMatchers("/api/employees/**", "/login", "/signup").permitAll() // Publicly accessible endpoints
                         .requestMatchers("/api/forms/**", "/api/responses/**", "/api/employee-dashboard/**").hasAnyRole("EMPLOYEE", "ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
@@ -58,15 +59,34 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         String frontendUrl = System.getenv("FRONTEND_URL");
-        if (frontendUrl == null) {
-            frontendUrl = "http://localhost:8081";
-        }
         
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(frontendUrl, "http://localhost:8081"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        
+        // Add default local origins
+        configuration.addAllowedOrigin("http://localhost:8081");
+        configuration.addAllowedOrigin("http://localhost:5173");
+        configuration.addAllowedOrigin("http://localhost:3000");
+        
+        // Add the Netlify URL explicitly to be safe
+        configuration.addAllowedOrigin("https://evaleaseui.netlify.app");
+        
+        // Add environment variable origin if it exists
+        if (frontendUrl != null && !frontendUrl.isEmpty()) {
+            if (frontendUrl.contains(",")) {
+                for (String url : frontendUrl.split(",")) {
+                    configuration.addAllowedOrigin(url.trim());
+                }
+            } else {
+                configuration.addAllowedOrigin(frontendUrl.trim());
+            }
+        }
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // Cache preflight response for 1 hour
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

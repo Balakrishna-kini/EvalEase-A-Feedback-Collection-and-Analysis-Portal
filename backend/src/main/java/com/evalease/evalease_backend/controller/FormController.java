@@ -16,7 +16,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/forms")
-@CrossOrigin(origins = "http://localhost:8081")
 public class FormController {
 
     @Autowired

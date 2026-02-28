@@ -13,8 +13,7 @@ import com.evalease.evalease_backend.service.SentimentService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/analytics")
-@CrossOrigin(origins = "http://localhost:8081")
+@RequestMapping("/api/sentiment")
 public class SentimentController {
 
     @Autowired

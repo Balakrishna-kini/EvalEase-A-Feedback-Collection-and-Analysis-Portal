@@ -23,7 +23,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/responses")
-@CrossOrigin(origins = "http://localhost:8081")
 public class ResponseController {
 
         @Autowired
