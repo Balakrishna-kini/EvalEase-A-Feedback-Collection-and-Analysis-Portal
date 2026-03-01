@@ -35,9 +35,13 @@ type QuestionType = {
 const FormBuilder = () => {
   const [formTitle, setFormTitle] = useState<string>("");
   const [formDescription, setFormDescription] = useState<string>("");
+  const [deadline, setDeadline] = useState<string>("");
+  const [category, setCategory] = useState<string>("General");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showPreview, setShowPreview] = useState<boolean>(false);
   const navigate = useNavigate();
+
+  const categories = ["General", "Technical", "Soft Skills", "Product Training", "Onboarding", "Quarterly Review"];
 
   const questionTypes: QuestionType[] = [
     { type: "rating", label: "Rating Scale", icon: Star },
@@ -149,6 +153,8 @@ const FormBuilder = () => {
     const formData = {
       title: formTitle.trim(),
       description: formDescription.trim(),
+      category: category,
+      deadline: deadline ? new Date(deadline).toISOString() : null,
       questions,
       createdAt: new Date().toISOString(),
     };
@@ -407,15 +413,15 @@ const FormBuilder = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
                 to="/admin/dashboard"
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Dashboard</span>
@@ -424,7 +430,7 @@ const FormBuilder = () => {
             <div className="flex space-x-4">
               <button
                 onClick={() => setShowPreview(true)}
-                className="flex items-center space-x-2 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
+                className="flex items-center space-x-2 bg-gray-600 dark:bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-600"
               >
                 <Eye className="h-4 w-4" />
                 <span>Preview</span>
@@ -443,31 +449,62 @@ const FormBuilder = () => {
 
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Form Info */}
-        <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Form Information
           </h2>
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Form Title
-              </label>
-              <input
-                type="text"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter form title"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Form Title
+                </label>
+                <input
+                  type="text"
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter form title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Category
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Submission Deadline (Optional)
+                </label>
+                <input
+                  type="datetime-local"
+                  value={deadline}
+                  onChange={(e) => setDeadline(e.target.value)}
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Description (Optional)
               </label>
               <textarea
                 value={formDescription}
                 onChange={(e) => setFormDescription(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
                 placeholder="Enter form description"
               />
@@ -476,8 +513,8 @@ const FormBuilder = () => {
         </div>
 
         {/* Question Types */}
-        <div className="bg-white rounded-xl shadow-sm border p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
             Add Questions
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -485,10 +522,10 @@ const FormBuilder = () => {
               <button
                 key={type.type}
                 onClick={() => addQuestion(type.type)}
-                className="flex flex-col items-center space-y-2 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-blue-300 transition duration-200"
+                className="flex flex-col items-center space-y-2 p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-blue-300 dark:hover:border-blue-500 transition duration-200"
               >
-                <type.icon className="h-6 w-6 text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">
+                <type.icon className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {type.label}
                 </span>
               </button>
@@ -501,9 +538,9 @@ const FormBuilder = () => {
           {questions.map((question) => renderQuestionEditor(question))}
 
           {questions.length === 0 && (
-            <div className="text-center py-12 bg-white rounded-xl shadow-sm border">
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700">
               <Type className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 No questions added yet. Add your first question above.
               </p>
             </div>

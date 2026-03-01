@@ -11,6 +11,9 @@ import com.evalease.evalease_backend.repository.FormRepository;
 import com.evalease.evalease_backend.service.AnalyticsService;
 
 import com.evalease.evalease_backend.repository.SubmittedFormRepository;
+import com.evalease.evalease_backend.entity.SubmittedForm;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.*;
 
 @RestController
@@ -25,6 +28,70 @@ public class AnalyticsController {
 
     @Autowired
     private SubmittedFormRepository submittedFormRepository;
+
+    // 🔹 Export form submissions to CSV
+    @GetMapping("/forms/{formId}/export/csv")
+    public void exportToCSV(@PathVariable Long formId, HttpServletResponse response) throws IOException {
+        Form form = formRepository.findById(formId).orElseThrow(() -> new RuntimeException("Form not found"));
+        List<SubmittedForm> submissions = submittedFormRepository.findByFormId(formId);
+        
+        response.setContentType("text/csv");
+        response.setHeader("Content-Disposition", "attachment; filename=" + form.getTitle().replaceAll("\\s+", "_") + "_responses.csv");
+        
+        StringBuilder csv = new StringBuilder();
+        // Header
+        csv.append("Submission ID,Employee Name,Employee Email,Submitted At");
+        for (var q : form.getQuestions()) {
+            csv.append(",\"").append(q.getTitle().replace("\"", "\"\"")).append("\"");
+        }
+        csv.append("\n");
+        
+        // Data rows
+        for (var sub : submissions) {
+            csv.append(sub.getId()).append(",");
+            csv.append(sub.getEmployee() != null ? sub.getEmployee().getName() : "Anonymous").append(",");
+            csv.append(sub.getEmployee() != null ? sub.getEmployee().getEmail() : "N/A").append(",");
+            csv.append(sub.getSubmittedAt()).append(",");
+            
+            // Map question ID to answer for this submission
+            Map<Long, String> answersMap = new HashMap<>();
+            for (var resp : sub.getResponses()) {
+                answersMap.put(resp.getQuestion().getId(), resp.getAnswer());
+            }
+            
+            for (int i = 0; i < form.getQuestions().size(); i++) {
+                var q = form.getQuestions().get(i);
+                String answer = answersMap.getOrDefault(q.getId(), "");
+                csv.append("\"").append(answer.replace("\"", "\"\"")).append("\"");
+                if (i < form.getQuestions().size() - 1) csv.append(",");
+            }
+            csv.append("\n");
+        }
+        
+        response.getWriter().write(csv.toString());
+    }
+
+    // 🔹 Get submissions list for a specific form
+    @GetMapping("/forms/{formId}/submissions")
+    public List<Map<String, Object>> getFormSubmissions(@PathVariable Long formId) {
+        List<SubmittedForm> submissions = submittedFormRepository.findByFormId(formId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        
+        for (SubmittedForm sub : submissions) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", sub.getId());
+            map.put("submittedAt", sub.getSubmittedAt());
+            if (sub.getEmployee() != null) {
+                map.put("employeeName", sub.getEmployee().getName());
+                map.put("employeeEmail", sub.getEmployee().getEmail());
+            } else {
+                map.put("employeeName", "Anonymous");
+                map.put("employeeEmail", "N/A");
+            }
+            result.add(map);
+        }
+        return result;
+    }
 
     // 🔹 Get all training sessions
     @GetMapping("/forms")
@@ -138,6 +205,8 @@ public class AnalyticsController {
             map.put("id", f.getId());
             map.put("title", f.getTitle());
             map.put("description", f.getDescription());
+            map.put("deadline", f.getDeadline());
+            map.put("category", f.getCategory());
             result.add(map);
         }
         return result;

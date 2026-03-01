@@ -16,6 +16,8 @@ public class FormDTO {
     private String title;
     private String description;
     private Instant createdAt;
+    private Instant deadline;
+    private String category;
     private List<QuestionDTO> questions;
 
     @Data

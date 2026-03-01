@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import { useState, useEffect } from 'react';
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { ThemeProvider } from './context/ThemeContext';
 
 const queryClient = new QueryClient();
 
@@ -41,10 +42,11 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <div className="min-h-screen bg-gray-50">
+        <ThemeProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login setUser={setUser} />} />
@@ -106,6 +108,7 @@ const App = () => {
             </Routes>
           </div>
         </BrowserRouter>
+      </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

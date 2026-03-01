@@ -47,6 +47,8 @@ public class FormService {
                                 .title(formDTO.getTitle())
                                 .description(formDTO.getDescription())
                                 .createdAt(Instant.now())
+                                .deadline(formDTO.getDeadline())
+                                .category(formDTO.getCategory())
                                 .build();
 
                 List<Question> questions = new ArrayList<>();
@@ -95,6 +97,8 @@ public class FormService {
                                 .title(form.getTitle())
                                 .description(form.getDescription())
                                 .createdAt(form.getCreatedAt())
+                                .deadline(form.getDeadline())
+                                .category(form.getCategory())
                                 .questions(questionDTOs)
                                 .build();
         }

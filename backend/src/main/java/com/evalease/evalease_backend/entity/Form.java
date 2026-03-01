@@ -17,6 +17,8 @@ public class Form {
 
     private String description;
     private Instant createdAt;
+    private Instant deadline;
+    private String category;
 
     @OneToMany(mappedBy = "form", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -28,11 +30,13 @@ public class Form {
 
     public Form() {}
 
-    public Form(Long id, String title, String description, Instant createdAt, List<Question> questions, List<Response> responses) {
+    public Form(Long id, String title, String description, Instant createdAt, Instant deadline, String category, List<Question> questions, List<Response> responses) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.createdAt = createdAt;
+        this.deadline = deadline;
+        this.category = category;
         this.questions = questions;
         this.responses = responses;
     }
@@ -49,6 +53,10 @@ public class Form {
     public void setDescription(String description) { this.description = description; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public Instant getDeadline() { return deadline; }
+    public void setDeadline(Instant deadline) { this.deadline = deadline; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
     public List<Question> getQuestions() { return questions; }
     public void setQuestions(List<Question> questions) { this.questions = questions; }
     public List<Response> getResponses() { return responses; }
@@ -59,6 +67,8 @@ public class Form {
         private String title;
         private String description;
         private Instant createdAt;
+        private Instant deadline;
+        private String category;
         private List<Question> questions;
         private List<Response> responses;
 
@@ -66,8 +76,10 @@ public class Form {
         public FormBuilder title(String title) { this.title = title; return this; }
         public FormBuilder description(String description) { this.description = description; return this; }
         public FormBuilder createdAt(Instant createdAt) { this.createdAt = createdAt; return this; }
+        public FormBuilder deadline(Instant deadline) { this.deadline = deadline; return this; }
+        public FormBuilder category(String category) { this.category = category; return this; }
         public FormBuilder questions(List<Question> questions) { this.questions = questions; return this; }
         public FormBuilder responses(List<Response> responses) { this.responses = responses; return this; }
-        public Form build() { return new Form(id, title, description, createdAt, questions, responses); }
+        public Form build() { return new Form(id, title, description, createdAt, deadline, category, questions, responses); }
     }
 }

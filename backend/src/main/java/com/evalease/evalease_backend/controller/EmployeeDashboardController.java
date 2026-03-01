@@ -2,7 +2,7 @@ package com.evalease.evalease_backend.controller;
 
 import com.evalease.evalease_backend.dto.DashboardFormDTO;
 import com.evalease.evalease_backend.dto.GenericResponseDTO;
-import com.evalease.evalease_backend.service.EmployeeDashboardService; // Renamed service
+import com.evalease.evalease_backend.service.EmployeeDashboardService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/employee-dashboard") // New, more specific base path
-public class EmployeeDashboardController { // Renamed controller
+@RequestMapping("/api/employee-dashboard")
+public class EmployeeDashboardController {
 
     @Autowired
-    private EmployeeDashboardService employeeDashboardService; // Renamed service field
+    private EmployeeDashboardService employeeDashboardService;
 
    @GetMapping("/forms/{employeeId}")
     public ResponseEntity<GenericResponseDTO<Map<String, List<DashboardFormDTO>>>> getFormsForEmployee(@PathVariable Long employeeId) {
@@ -27,23 +27,33 @@ public class EmployeeDashboardController { // Renamed controller
                 GenericResponseDTO.<Map<String, List<DashboardFormDTO>>>builder()
                     .success(true)
                     .data(forms)
-                    .error(null)
-                    .build()
-            );
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                GenericResponseDTO.<Map<String, List<DashboardFormDTO>>>builder()
-                    .success(false)
-                    .data(null)
-                    .error(ex.getMessage())
                     .build()
             );
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 GenericResponseDTO.<Map<String, List<DashboardFormDTO>>>builder()
                     .success(false)
-                    .data(null)
-                    .error("Failed to retrieve forms for employee: " + ex.getMessage())
+                    .error("Failed to retrieve forms: " + ex.getMessage())
+                    .build()
+            );
+        }
+    }
+
+    @GetMapping("/submissions/{employeeId}/details")
+    public ResponseEntity<GenericResponseDTO<List<Map<String, Object>>>> getEmployeeFeedbackHistory(@PathVariable Long employeeId) {
+        try {
+            List<Map<String, Object>> history = employeeDashboardService.getEmployeeFeedbackHistory(employeeId);
+            return ResponseEntity.ok(
+                GenericResponseDTO.<List<Map<String, Object>>>builder()
+                    .success(true)
+                    .data(history)
+                    .build()
+            );
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                GenericResponseDTO.<List<Map<String, Object>>>builder()
+                    .success(false)
+                    .error("Failed to retrieve history: " + ex.getMessage())
                     .build()
             );
         }

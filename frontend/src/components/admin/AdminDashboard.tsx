@@ -8,7 +8,10 @@ import {
   Plus,
   TrendingUp,
   LogOut,
+  LayoutDashboard,
+  Settings,
 } from "lucide-react";
+import ThemeSwitcher from "../ThemeSwitcher";
 import { API_BASE_URL } from "../../config";
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -97,20 +100,21 @@ const AdminDashboard = ({ user, onLogout }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Admin Dashboard
               </h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Welcome back, {user?.name || "Admin"}
               </p>
             </div>
-            <div className="flex space-x-4">
+            <div className="flex items-center space-x-4">
+              <ThemeSwitcher />
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
@@ -129,18 +133,18 @@ const AdminDashboard = ({ user, onLogout }) => {
           {statsData.map((stat, index) => (
             <div
               key={index}
-              className="bg-white rounded-xl p-6 shadow-sm border"
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {stat.title}
                   </p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2">
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                     {stat.value}
                   </p>
                 </div>
-                <div className={`${colorBgMap[stat.color]} p-3 rounded-full`}>
+                <div className={`${colorBgMap[stat.color]} dark:bg-opacity-20 p-3 rounded-full`}>
                   <stat.icon
                     className={`${colorTextMap[stat.color]} h-6 w-6`}
                   />
@@ -180,25 +184,25 @@ const AdminDashboard = ({ user, onLogout }) => {
         </div>
 
         {/* Recent Forms */}
-        <h1 className="text-2xl font-bold text-gray-600 pb-2">Recent Forms</h1>
+        <h1 className="text-2xl font-bold text-gray-600 dark:text-gray-400 pb-2">Recent Forms</h1>
         {recentForms.length > 0 ? (
           recentForms.map((form, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
+              className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               <div>
-                <h3 className="font-medium text-gray-900">{form.title}</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="font-medium text-gray-900 dark:text-white">{form.title}</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Created on {new Date(form.createdAt).toLocaleDateString()}
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-gray-900">
+                <p className="font-semibold text-gray-900 dark:text-white">
                   {form.responseCount}{" "}
                   {form.responseCount === 1 ? "response" : "responses"}
                 </p>
-                <p className="text-sm text-gray-600">Total submissions</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total submissions</p>
               </div>
             </div>
           ))
