@@ -1,149 +1,109 @@
-# 🧩 EvalEase
+# 🧩 EvalEase — Feedback Intelligence Portal
 
-EvalEase is a training feedback collection portal designed to gather and analyze participant feedback after training sessions.
-It helps Capability or L\&D teams evaluate training effectiveness and continuously improve content and delivery.
+EvalEase is a full-stack training feedback intelligence platform designed to collect, analyze, and visualize participant feedback after training sessions.
 
-The platform enables administrators to create custom feedback forms for different training types and track responses.
+Instead of manual feedback collection and spreadsheet analysis, EvalEase transforms responses into **actionable insights** using analytics dashboards, AI sentiment analysis, and automated reporting tools.
 
+---
+
+## 🌐 Application Preview
+
+<img width="1793" height="833" alt="Landing_page" src="https://github.com/user-attachments/assets/30a77fe6-7f4d-4c66-b6d3-4cc4b6db6c3f" />
+
+---
 
 ## 🔧 Tech Stack
 
 ### 🖥 Frontend
+- React (Vite)
+- TypeScript
+- Tailwind CSS
+- Recharts (Data Visualization)
 
-* **React (Vite)**
-* **TypeScript**
-* **Tailwind CSS**
+### 🔙 Backend
+- Spring Boot
+- Maven
+- JPA / Hibernate
+- JWT Authentication
+- REST APIs
 
-### 🔙 Backend (Java)
+### 🐍 AI Service
+- Python Flask Microservice
+- TextBlob NLP Sentiment Analysis
 
-* **Spring Boot**
-* **Maven** (build management)
-* **MySQL** (via Docker/mysql on local device)
-* **JPA/Hibernate** (ORM)
-* **DTOs + Entity Mapping**
+### 🗄 Database
+- MySQL (Local Docker)
+- PostgreSQL (Cloud Deployment – Neon)
 
-### 🐍 Python Sentiment analysis 
-
-* Runs on **Flask/FastAPI** (port `5000`) for analytics/ML modules
-
+---
 
 ## ⚙️ Features
 
-* ✅ Dynamic Forms supporting:
+### ✅ Dynamic Feedback System
+- Admins create customizable feedback forms
+- Supports:
+  - Rating Scale ⭐
+  - Text / Paragraph Input 📝
+  - Multiple Choice 🔘
+  - Checkboxes ☑
+- Live preview before publishing forms
 
-  * Rating Scale
-  * Text Input / TextArea
-  * Multiple Choice
-  * Checkboxes
-* 🧪 Live form preview before saving
-* 💾 Save form with all questions to backend
-* 🐬 Auto-generate MySQL schema at startup
-* 🔒 DTO layer to prevent direct entity exposure
+### ✅ Automated Feedback Collection
+Employees can securely:
+- View assigned forms
+- Submit responses instantly
+- Store feedback automatically in database
 
+### ✅ Analytics & Intelligence Dashboard
+Admin dashboard provides:
+- Participation tracking
+- Rating analytics
+- Sentiment visualization charts
+- Per-form and overall performance insights
+
+### ✅ AI-Driven Insights
+EvalEase integrates an AI microservice that:
+- Analyzes textual feedback sentiment
+- Classifies responses as **Positive / Neutral / Negative**
+- Generates improvement suggestions directly inside the admin dashboard
+- Processes sentiment asynchronously without blocking user requests
+
+### ✅ Smart Distribution & Reporting
+- QR Code generation for instant form access during sessions
+- Secure CSV export for Excel / BI analytics
+- Deadline-based form auto-closing
+
+### ✅ Employee Experience Enhancements
+- Participation certificate generated after submission
+- Responsive mobile-friendly interface
+- Real-time submission tracking
+
+---
+
+## 📸 Application Screenshots
+
+| Feature / Screen | Preview |
+|---|---|
+| Admin Login | <img width="1920" height="906" alt="adminlogin" src="https://github.com/user-attachments/assets/ec875dca-6947-45c8-a6cb-e6d133eeb968" /> |
+| Admin Dashboard | <img width="1920" height="906" alt="admin dashboard" src="https://github.com/user-attachments/assets/a4af2ad0-820b-4eba-a88d-a76adedc2b48" /> |
+| Form Creation | <img width="1189" height="817" alt="Screenshot 2026-03-01 115644" src="https://github.com/user-attachments/assets/1d41b7e5-4865-4159-a01c-11a77aead95e" /> |
+| Form Preview | <img width="1920" height="1449" alt="form preview" src="https://github.com/user-attachments/assets/9d76df05-d982-405a-abcf-e923ca0a84eb" /> |
+| Employee Login | <img width="1920" height="906" alt="employeelogin" src="https://github.com/user-attachments/assets/192114b0-e984-4c76-a5c4-b661635ed72b" /> |
+| Employee Dashboard (Before Submission) | <img width="1268" height="834" alt="image" src="https://github.com/user-attachments/assets/f2ca4daf-3b45-4e64-b186-6e511a116caf" /> |
+| Filling the Form | <img width="1920" height="1505" alt="fill form" src="https://github.com/user-attachments/assets/0cace49f-9aed-434e-a965-863e2e4bede5" /> |
+| Employee Dashboard (After Submission) | <img width="1920" height="906" alt="employee dashboard" src="https://github.com/user-attachments/assets/fdd31beb-efc9-49e0-9251-e3418b93d62e" /> |
+| Analytics (Overall) | <img width="804" height="746" alt="Screenshot 2026-03-01 120149" src="https://github.com/user-attachments/assets/e36fe587-a8b2-4cb6-b03f-b2ab5674b7a0" /> |
+| Analytics (Per Form) | <img width="794" height="802" alt="Screenshot 2026-03-01 120654" src="https://github.com/user-attachments/assets/8eec3daf-7f8d-44e6-aedc-08ed3011288d" /> |
+| AI Improvement Suggestions | <img width="774" height="469" alt="image" src="https://github.com/user-attachments/assets/a0c2ed9e-c0f2-4bc1-9cb1-302aa458d6b8" /> |
+| QR Code & CSV Export | <img width="671" height="600" alt="image" src="https://github.com/user-attachments/assets/1ab9e78d-248f-4638-865c-71baaa408c00" /> |
+| Participation Certificate | <img width="404" height="764" alt="image" src="https://github.com/user-attachments/assets/7fb1790c-6fef-43bc-b02a-5ef91d71479e" /> |
+
+---
 
 ## 🚀 Installation & Setup
 
-### 1️⃣ Clone Repo
+### 1️⃣ Clone Repository
 
 ```bash
 git clone https://github.com/Abheeshta-P/EvalEase.git
 cd evalease
-```
-
-
-### 2️⃣ Backend (Spring Boot – Port **8080**)
-
-1. Update **`src/main/resources/application.properties`**:
-
-   ```properties
-   spring.datasource.url=jdbc:mysql://localhost:3306/evalease
-   spring.datasource.username=root
-   spring.datasource.password=yourpassword
-   spring.jpa.hibernate.ddl-auto=update
-   ```
-
-2. Build & Run:
-
-   ```bash
-   mvn clean install
-   mvn spring-boot:run
-   ```
-
-   Runs on 👉 `http://localhost:8080`
-
-
-### 3️⃣ Database (MySQL in Docker – Port **3306**)
-
-Start MySQL using Docker:
-
-```bash
-docker run --name evalease-mysql -e MYSQL_ROOT_PASSWORD=yourpassword -e MYSQL_DATABASE=evalease -p 3306:3306 -d mysql:8
-```
-
-
-### 4️⃣ Frontend (React – Port **8081**)
-
-1. Go to frontend:
-
-   ```bash
-   cd frontend
-   ```
-
-2. Create **`.env`** file:
-
-   ```bash
-   VITE_SERVER_PORT=http://localhost:8080
-   ```
-
-3. Install deps & run:
-
-   ```bash
-   npm install
-   npm run dev 
-   ```
-
-   Runs on 👉 `http://localhost:8081`
-
-
-### 5️⃣ Analysis in python (API at **5000**)
-
-If you have an ML/analytics service:
-
-```bash
-cd feedback-sentiment-api
-pip install -r requirements.txt
-python app.py
-```
-
-Runs on 👉 `http://localhost:5000`
-
-
-## 🔑 Admin Login (default)
-
-* **Email**: `admin@evalease.com`
-* **Password**: `adminpass`
-
-(You can later change this as per company requirements.)
-
-
-## ⚠️ Notes
-
-* Backend auto-generates schema (`ddl-auto=update`).
-* Admin credentials are hardcoded only for development.
-* Docker MySQL container must be running before backend start (If docker is used to run the mysql).
-
-## 📸 Screenshots
-
-| Feature / Screen                 | Screenshot(s) |
-|----------------------------------|---------------|
-| Admin Login                      | <img width="1920" height="906" alt="adminlogin" src="https://github.com/user-attachments/assets/ec875dca-6947-45c8-a6cb-e6d133eeb968" />|
-| Admin Dashboard                  | <img width="1920" height="906" alt="admin dashboard" src="https://github.com/user-attachments/assets/a4af2ad0-820b-4eba-a88d-a76adedc2b48" />|
-| Form Creation   | <img width="1920" height="906" alt="form create1" src="https://github.com/user-attachments/assets/19b69eb8-ae4f-4db0-9a54-b995df6c843c" />
-| Form preview                     | <img width="1920" height="1449" alt="form preview" src="https://github.com/user-attachments/assets/9d76df05-d982-405a-abcf-e923ca0a84eb" />|
-| Employee Login                   | <img width="1920" height="906" alt="employeelogin" src="https://github.com/user-attachments/assets/192114b0-e984-4c76-a5c4-b661635ed72b" />|
-| Employee Dashboard (before filling form) | <img width="1920" height="906" alt="employee dashhboard" src="https://github.com/user-attachments/assets/20713df9-2602-4907-ac2b-9ee6f953ce71" />|
-| Filling the Form                 | <img width="1920" height="1505" alt="fill form" src="https://github.com/user-attachments/assets/0cace49f-9aed-434e-a965-863e2e4bede5" />
-| Employee Dashboard (after filling form)               | <img width="1920" height="906" alt="employee dashboard" src="https://github.com/user-attachments/assets/fdd31beb-efc9-49e0-9251-e3418b93d62e" />|
-| Analytics (overall)   | <img width="1920" height="2017" alt="main" src="https://github.com/user-attachments/assets/ba8b869a-8726-42b7-ad8f-1c4a6d163adc" />|
-|Analytics (per form) | <img width="1920" height="3670" alt="form" src="https://github.com/user-attachments/assets/0d934d04-b0cc-4404-b3a4-643d798d906e" />|
-
