@@ -77,31 +77,34 @@ const Analytics: React.FC = () => {
 
   useEffect(() => {
     getTopPerformersSummary()
-      .then((res) => setSummary(res.data))
+      .then((res) => setSummary(res?.data || null))
       .catch((err) => console.error("Failed to fetch summary", err));
 
     getAverageSentimentAllForms()
-      .then((res) => setSentimentData(res.data))
+      .then((res) => setSentimentData(res?.data || []))
       .catch((err) => console.error("Failed to fetch sentiment data", err));
 
     getResponseCountPerForm()
-      .then((res) => setResponseCounts(res.data))
+      .then((res) => setResponseCounts(res?.data || []))
       .catch((err) => console.error("Failed to fetch response counts", err));
 
     getForms()
-      .then((res) => setForms(res.data))
+      .then((res) => setForms(res?.data || []))
       .catch((err) => console.error(err));
   }, []);
 
-  const participationData = responseCounts.map((item) => ({
-    name: item.form.length > 15 ? `${item.form.substring(0, 15)}...` : item.form,
-    fullName: item.form,
-    responses: item.responses,
-  }));
+  const participationData = (responseCounts || []).map((item) => {
+    const formName = item?.form || "Untitled";
+    return {
+      name: formName.length > 15 ? `${formName.substring(0, 15)}...` : formName,
+      fullName: formName,
+      responses: item?.responses || 0,
+    };
+  });
 
-  const sentimentCounts = {};
-  sentimentData.forEach((form) => {
-    const category = form.category;
+  const sentimentCounts: { [key: string]: number } = {};
+  (sentimentData || []).forEach((form) => {
+    const category = form?.category || "Unknown";
     sentimentCounts[category] = (sentimentCounts[category] || 0) + 1;
   });
 
@@ -116,9 +119,15 @@ const Analytics: React.FC = () => {
           ? "#3b82f6"
           : category === "Neutral"
           ? "#f59e0b"
-          : "#ef4444",
+          : category === "Negative"
+          ? "#ef4444"
+          : "#94a3b8", // Gray for unknown
     })
   );
+
+  const globalAvgSentiment = sentimentData && sentimentData.length > 0
+    ? (sentimentData.reduce((acc, curr) => acc + (curr?.averageSentiment || 0), 0) / sentimentData.length)
+    : 0;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
@@ -146,7 +155,7 @@ const Analytics: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-blue-100 text-sm font-medium mb-1 uppercase tracking-wider">Total Active Forms</p>
-                  <p className="text-4xl font-bold">{summary?.totalForms || forms.length}</p>
+                  <p className="text-4xl font-bold">{summary?.totalForms || forms?.length || 0}</p>
                 </div>
                 <div className="bg-white/20 p-2 rounded-xl">
                   <TrendingUp className="w-6 h-6" />
@@ -161,7 +170,7 @@ const Analytics: React.FC = () => {
                 <div>
                   <p className="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Overall Responses</p>
                   <p className="text-4xl font-bold text-gray-900">
-                    {summary?.totalResponses || responseCounts.reduce((acc, curr) => acc + curr.responses, 0)}
+                    {summary?.totalResponses || (responseCounts || []).reduce((acc, curr) => acc + (curr?.responses || 0), 0)}
                   </p>
                 </div>
                 <div className="bg-green-50 p-2 rounded-xl">
@@ -177,9 +186,7 @@ const Analytics: React.FC = () => {
                 <div>
                   <p className="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Global Avg. Sentiment</p>
                   <p className="text-4xl font-bold text-gray-900">
-                    {sentimentData.length > 0 
-                      ? `${((sentimentData.reduce((acc, curr) => acc + curr.averageSentiment, 0) / sentimentData.length) * 100).toFixed(0)}%`
-                      : '0%'}
+                    {(globalAvgSentiment * 100).toFixed(0)}%
                   </p>
                 </div>
                 <div className="bg-purple-50 p-2 rounded-xl">
@@ -200,10 +207,10 @@ const Analytics: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Top Rated Session</p>
-                  <p className="text-lg font-bold text-gray-900 line-clamp-1">{summary.topRatedForm}</p>
+                  <p className="text-lg font-bold text-gray-900 line-clamp-1">{summary.topRatedForm || "N/A"}</p>
                   <div className="flex items-center space-x-1 mt-1">
                     <ThumbsUp className="w-3 h-3 text-amber-500" />
-                    <span className="text-xs font-bold text-amber-600">{summary.topRating.toFixed(1)} / 5.0 Rating</span>
+                    <span className="text-xs font-bold text-amber-600">{(summary.topRating || 0).toFixed(1)} / 5.0 Rating</span>
                   </div>
                 </div>
               </CardContent>
@@ -216,10 +223,10 @@ const Analytics: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Highest Sentiment</p>
-                  <p className="text-lg font-bold text-gray-900 line-clamp-1">{summary.topSentimentForm}</p>
+                  <p className="text-lg font-bold text-gray-900 line-clamp-1">{summary.topSentimentForm || "N/A"}</p>
                   <div className="flex items-center space-x-1 mt-1">
                     <Activity className="w-3 h-3 text-green-500" />
-                    <span className="text-xs font-bold text-green-600">{(summary.topSentiment * 100).toFixed(0)}% Positive Vibes</span>
+                    <span className="text-xs font-bold text-green-600">{((summary.topSentiment || 0) * 100).toFixed(0)}% Positive Vibes</span>
                   </div>
                 </div>
               </CardContent>
@@ -311,8 +318,8 @@ const Analytics: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {forms.map((form) => {
-              const formSentiment = sentimentData.find(s => s.formId === form.id);
+            {(forms || []).map((form) => {
+              const formSentiment = (sentimentData || []).find(s => s.formId === form.id);
               return (
                 <Card 
                   key={form.id} 
@@ -342,7 +349,7 @@ const Analytics: React.FC = () => {
                         <div className="flex flex-col">
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Responses</span>
                           <span className="text-sm font-bold text-gray-800">
-                            {responseCounts.find(r => r.form === form.title)?.responses || 0}
+                            {(responseCounts || []).find(r => r.form === form.title)?.responses || 0}
                           </span>
                         </div>
                       </div>

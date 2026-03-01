@@ -61,8 +61,8 @@ const SessionAnalytics: React.FC = () => {
           getSessionAnalytics(Number(formId)),
           getSuggestions(Number(formId))
         ]);
-        setAnalyticsData(analyticsRes.data);
-        setSuggestions(suggestionsRes.data);
+        setAnalyticsData(analyticsRes?.data || null);
+        setSuggestions(suggestionsRes?.data || []);
       } catch (error) {
         console.error("Error fetching analytics data:", error);
       } finally {
@@ -176,7 +176,7 @@ const SessionAnalytics: React.FC = () => {
 
         {/* Dynamic Question Charts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {analyticsData.questions.map((q, index) => (
+          {(analyticsData?.questions || []).map((q, index) => (
             <Card key={index} className="border-none shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-shadow">
               <CardHeader className="pb-2 border-b border-gray-50 px-8 py-6">
                 <div className="flex items-start justify-between">
@@ -197,17 +197,17 @@ const SessionAnalytics: React.FC = () => {
               </CardHeader>
               <CardContent className="p-8">
                 <div className="mt-4">
-                  {q.questionType.toLowerCase() === 'rating' && (
-                    <RatingChart data={q.optionCounts} />
+                  {q.questionType?.toLowerCase() === 'rating' && (
+                    <RatingChart data={q.optionCounts || {}} />
                   )}
-                  {(q.questionType.toLowerCase() === 'multiple' || q.questionType.toLowerCase() === 'radio') && (
-                    <McqChart data={q.optionCounts} />
+                  {(q.questionType?.toLowerCase() === 'multiple' || q.questionType?.toLowerCase() === 'radio') && (
+                    <McqChart data={q.optionCounts || {}} />
                   )}
-                  {q.questionType.toLowerCase() === 'checkbox' && (
-                    <HalfDonutChart data={q.optionCounts} />
+                  {q.questionType?.toLowerCase() === 'checkbox' && (
+                    <HalfDonutChart data={q.optionCounts || {}} />
                   )}
-                  {(q.questionType.toLowerCase() === 'paragraph' || q.questionType.toLowerCase() === 'text' || q.questionType.toLowerCase() === 'textarea') && (
-                    <DonutChart data={q.optionCounts} />
+                  {(q.questionType?.toLowerCase() === 'paragraph' || q.questionType?.toLowerCase() === 'text' || q.questionType?.toLowerCase() === 'textarea') && (
+                    <DonutChart data={q.optionCounts || {}} />
                   )}
                 </div>
               </CardContent>
@@ -227,9 +227,9 @@ const SessionAnalytics: React.FC = () => {
             </div>
           </div>
 
-          {suggestions && suggestions.length > 0 ? (
+          {suggestions && (suggestions || []).length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {suggestions.map((suggestion, idx) => (
+              {(suggestions || []).map((suggestion, idx) => (
                 <Card key={idx} className="border-none shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-xl transition-all border-l-4 border-l-blue-500">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">
