@@ -13,8 +13,8 @@ const COLORS = [
 ];
 
 const HalfDonutChart: React.FC<HalfDonutChartProps> = ({ data }) => {
-  if (!data || Object.keys(data).length === 0) {
-    return <div>No checkbox data available</div>;
+  if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+    return <div className="flex items-center justify-center h-full text-gray-500 italic">No checkbox data available</div>;
   }
 
   const totalResponses = Object.values(data).reduce((sum, count) => sum + count, 0);

@@ -17,7 +17,7 @@ interface RatingChartProps {
 const COLORS = ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981'];
 
 const RatingChart: React.FC<RatingChartProps> = ({ data }) => {
-  if (!data || Object.keys(data).length === 0) {
+  if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
     return <div className="flex items-center justify-center h-full text-gray-500 italic">No rating data available</div>;
   }
 

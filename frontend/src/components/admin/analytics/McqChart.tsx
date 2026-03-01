@@ -22,7 +22,7 @@ const COLORS = [
 ];
 
 const McqChart: React.FC<McqChartProps> = ({ data }) => {
-  if (!data || Object.keys(data).length === 0) {
+  if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
     return <div className="flex items-center justify-center h-full text-gray-500 italic">No multiple choice data available</div>;
   }
 

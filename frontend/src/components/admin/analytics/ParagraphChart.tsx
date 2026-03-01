@@ -36,8 +36,8 @@ const CustomYAxisTick = ({ x, y, payload }: any) => {
 };
 
 const ParagraphChart: React.FC<ParagraphChartProps> = ({ data }) => {
-  if (!data || Object.keys(data).length === 0) {
-    return <div>No text response data available</div>;
+  if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+    return <div className="flex items-center justify-center h-full text-gray-500 italic">No text response data available</div>;
   }
 
   const chartData = Object.entries(data).map(([name, value]) => ({

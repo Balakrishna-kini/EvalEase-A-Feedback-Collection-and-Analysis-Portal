@@ -11,8 +11,8 @@ const COLORS = ['#4ade80', '#f87171', '#60a5fa']; // Green=Positive, Red=Negativ
 
 
 const DonutChart: React.FC<DonutChartProps> = ({ data }) => {
-  if (!data || Object.keys(data).length === 0) {
-    return <div>no text data available</div>;
+  if (!data || typeof data !== 'object' || Object.keys(data).length === 0) {
+    return <div className="flex items-center justify-center h-full text-gray-500 italic">No data available</div>;
   }
 
   const chartData = Object.entries(data).map(([name, value]) => ({

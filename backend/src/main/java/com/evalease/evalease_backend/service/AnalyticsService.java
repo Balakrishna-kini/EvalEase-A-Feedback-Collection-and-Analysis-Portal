@@ -142,15 +142,17 @@ public class AnalyticsService {
             }
         }
 
-        SentimentResult sentimentResult = sentimentService.analyzeSentimentBatch(textAnswers);
-
-        SessionAnalyticsDTO dto = new SessionAnalyticsDTO();
-        dto.setFormId(formId);
-        dto.setQuestionCount(form.getQuestions().size());
-        dto.setTotalResponses(submittedForms.size());
+        double avg = ratingCount > 0 ? totalRating / ratingCount : 0.0;
+        
         SentimentResult sentimentResult;
         try {
-            sentimentResult = sentimentService.analyzeSentiment(allComments.toString());
+            if (textAnswers.isEmpty()) {
+                sentimentResult = new SentimentResult("neutral", 0.0);
+            } else {
+                // Join all comments for a single sentiment analysis call
+                String combinedComments = String.join(" ", textAnswers);
+                sentimentResult = sentimentService.analyzeSentiment(combinedComments);
+            }
         } catch (Exception e) {
             sentimentResult = new SentimentResult("neutral", 0.0);
         }
@@ -158,7 +160,11 @@ public class AnalyticsService {
         if (sentimentResult == null) {
             sentimentResult = new SentimentResult("neutral", 0.0);
         }
-        
+
+        SessionAnalyticsDTO dto = new SessionAnalyticsDTO();
+        dto.setFormId(formId);
+        dto.setQuestionCount(form.getQuestions().size());
+        dto.setTotalResponses(submittedForms.size());
         dto.setAverageRating(Math.min(5.0, avg));
         dto.setSentiment(sentimentResult);
         dto.setQuestions(getQuestionAnalyticsByFormId(formId));
