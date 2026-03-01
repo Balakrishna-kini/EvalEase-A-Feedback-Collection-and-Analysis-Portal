@@ -14,7 +14,7 @@ const getAuthHeaders = () => {
   };
 };
 
-export const getForms = () => axios.get(`${BASE_URL}/forms`, { headers: getAuthHeaders() });
+export const getForms = () => axios.get(`${BASE_URL}/forms/list`, { headers: getAuthHeaders() });
 export const getQuestionAnalytics = (formId: number) => axios.get(`${BASE_URL}/forms/${formId}/questions`, { headers: getAuthHeaders() });
 export const getSessionAnalytics = (formId: number) => axios.get(`${BASE_URL}/forms/${formId}/session-analytics`, { headers: getAuthHeaders() });
 export const getAverageSentimentByForm = (formId: number) => axios.get(`${BASE_URL}/forms/${formId}/sentiment/average`, { headers: getAuthHeaders() });

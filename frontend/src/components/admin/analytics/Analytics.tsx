@@ -89,8 +89,11 @@ const Analytics: React.FC = () => {
       .catch((err) => console.error("Failed to fetch response counts", err));
 
     getForms()
-      .then((res) => setForms(res?.data || []))
-      .catch((err) => console.error(err));
+      .then((res) => {
+        console.log("Forms received:", res.data);
+        setForms(res?.data || []);
+      })
+      .catch((err) => console.error("Error fetching forms:", err));
   }, []);
 
   const participationData = Array.isArray(responseCounts) 
