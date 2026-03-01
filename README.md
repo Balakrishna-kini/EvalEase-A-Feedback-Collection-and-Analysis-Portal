@@ -92,7 +92,7 @@ EvalEase integrates an AI microservice that:
 | Employee Login | <img width="1920" height="906" alt="employeelogin" src="https://github.com/user-attachments/assets/192114b0-e984-4c76-a5c4-b661635ed72b" /> |
 | Employee Dashboard (Before Submission) | <img width="1268" height="834" alt="image" src="https://github.com/user-attachments/assets/f2ca4daf-3b45-4e64-b186-6e511a116caf" /> |
 | Filling the Form | <img width="1920" height="1505" alt="fill form" src="https://github.com/user-attachments/assets/0cace49f-9aed-434e-a965-863e2e4bede5" /> |
-| Employee Dashboard (After Submission) | <img width="1920" height="906" alt="employee dashboard" src="https://github.com/user-attachments/assets/fdd31beb-efc9-49e0-9251-e3418b93d62e" /> |
+| Employee Dashboard (After Submission) | <img width="794" height="648" alt="Screenshot 2026-03-01 121334" src="https://github.com/user-attachments/assets/daa8d6c0-6e99-4f16-a9ab-7ded1a6c343d" /> |
 | Analytics (Overall) | <img width="804" height="746" alt="Screenshot 2026-03-01 120149" src="https://github.com/user-attachments/assets/e36fe587-a8b2-4cb6-b03f-b2ab5674b7a0" /> |
 | Analytics (Per Form) | <img width="794" height="802" alt="Screenshot 2026-03-01 120654" src="https://github.com/user-attachments/assets/8eec3daf-7f8d-44e6-aedc-08ed3011288d" /> |
 | AI Improvement Suggestions | <img width="774" height="469" alt="image" src="https://github.com/user-attachments/assets/a0c2ed9e-c0f2-4bc1-9cb1-302aa458d6b8" /> |
@@ -100,6 +100,7 @@ EvalEase integrates an AI microservice that:
 | Participation Certificate | <img width="404" height="764" alt="image" src="https://github.com/user-attachments/assets/7fb1790c-6fef-43bc-b02a-5ef91d71479e" /> |
 
 ---
+
 
 ## 🚀 Installation & Setup
 
