@@ -145,10 +145,12 @@ public class AnalyticsController {
             map.put("name", form.getTitle());
             
             try {
-                // Return a default Neutral category with a representative value
-                // In a production app, we'd cache these values or store them in the DB
-                map.put("category", "Neutral");
-                map.put("averageSentiment", 0.0);
+                SessionAnalyticsDTO analytics = analyticsService.getSessionAnalytics(form.getId());
+                double avg = analytics.getAverageSentiment();
+                map.put("averageSentiment", avg);
+                map.put("category",
+                    avg > 0.1 ? "Positive" :
+                    avg < -0.1 ? "Negative" : "Neutral");
             } catch (Exception e) {
                 map.put("category", "Neutral");
                 map.put("averageSentiment", 0.0);
@@ -182,13 +184,34 @@ public class AnalyticsController {
         long totalResponses = submittedFormRepository.count();
         
         Map<String, Object> result = new HashMap<>();
-        // To keep this fast, we'll return static "Top" data for now 
-        // or fetch from a specific "Hall of Fame" table if we had one.
-        // For a college project, showing total forms/responses is the priority.
-        result.put("topRatedForm", forms.isEmpty() ? "N/A" : forms.get(0).getTitle());
-        result.put("topRating", 4.8); 
-        result.put("topSentimentForm", forms.isEmpty() ? "N/A" : forms.get(forms.size()-1).getTitle());
-        result.put("topSentiment", 0.85);
+        
+        Form topRatedForm = null;
+        double maxRating = -1.0;
+        
+        Form topSentimentForm = null;
+        double maxSentiment = -2.0;
+
+        for (Form form : forms) {
+            try {
+                SessionAnalyticsDTO analytics = analyticsService.getSessionAnalytics(form.getId());
+                
+                if (analytics.getAverageRating() > maxRating) {
+                    maxRating = analytics.getAverageRating();
+                    topRatedForm = form;
+                }
+                
+                double sentimentScore = analytics.getAverageSentiment();
+                if (sentimentScore > maxSentiment) {
+                    maxSentiment = sentimentScore;
+                    topSentimentForm = form;
+                }
+            } catch (Exception ignored) {}
+        }
+
+        result.put("topRatedForm", topRatedForm != null ? topRatedForm.getTitle() : "N/A");
+        result.put("topRating", topRatedForm != null ? maxRating : 0.0);
+        result.put("topSentimentForm", topSentimentForm != null ? topSentimentForm.getTitle() : "N/A");
+        result.put("topSentiment", topSentimentForm != null ? maxSentiment : 0.0);
         
         result.put("totalForms", forms.size());
         result.put("totalResponses", totalResponses);

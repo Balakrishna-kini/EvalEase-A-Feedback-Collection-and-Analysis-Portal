@@ -174,7 +174,10 @@ const Analytics: React.FC = () => {
           ? "#ef4444"
           : "#94a3b8",
     })
-  );
+  ).sort((a, b) => {
+    const order = ["Very Positive", "Positive", "Neutral", "Negative"];
+    return order.indexOf(a.name) - order.indexOf(b.name);
+  });
 
   const globalAvgSentiment = Array.isArray(sentimentData) && sentimentData.length > 0
     ? (sentimentData.reduce((acc, curr) => acc + (curr?.averageSentiment || 0), 0) / sentimentData.length)
@@ -401,6 +404,7 @@ const Analytics: React.FC = () => {
                           <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-tighter ${
                             formSentiment.category === 'Very Positive' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' :
                             formSentiment.category === 'Positive' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
+                            formSentiment.category === 'Negative' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
                             'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                           }`}>
                             {formSentiment.category}
