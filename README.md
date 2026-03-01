@@ -8,7 +8,8 @@ Instead of manual feedback collection and spreadsheet analysis, EvalEase transfo
 
 ## 🌐 Application Preview
 
-<img width="1793" height="833" alt="Landing_page" src="https://github.com/user-attachments/assets/30a77fe6-7f4d-4c66-b6d3-4cc4b6db6c3f" />
+<img width="1793" height="833" alt="Landing_page" src="https://github.com/user-attachments/assets/ae68037f-a3d3-42a8-8203-64bb627d46ba" />
+
 
 ---
 
