@@ -10,5 +10,8 @@ import java.util.List;
 public interface SubmittedFormRepository extends JpaRepository<SubmittedForm, Long> {
 
     @Query("SELECT sf FROM SubmittedForm sf WHERE sf.form.id = :formId")
-   List<SubmittedForm>  findByFormId(@Param("formId") Long formId);
+    List<SubmittedForm> findByFormId(@Param("formId") Long formId);
+
+    @Query("SELECT COUNT(sf) FROM SubmittedForm sf WHERE sf.form.id = :formId")
+    long countByFormId(@Param("formId") Long formId);
 }

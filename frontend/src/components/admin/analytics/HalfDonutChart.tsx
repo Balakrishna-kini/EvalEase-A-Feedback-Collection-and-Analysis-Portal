@@ -17,8 +17,21 @@ const HalfDonutChart: React.FC<HalfDonutChartProps> = ({ data }) => {
     return <div className="flex items-center justify-center h-full text-gray-500 italic">No checkbox data available</div>;
   }
 
-  const totalResponses = Object.values(data).reduce((sum, count) => sum + count, 0);
-  const chartData = Object.entries(data).map(([name, count]) => ({
+  // 🔹 Clean the keys: Checkbox data often comes in as "[Option A][Option B]" or "Option A, Option B"
+  const cleanData: { [option: string]: number } = {};
+  Object.entries(data).forEach(([key, count]) => {
+    // If key is "[A][B]", split it into "A" and "B"
+    const parts = key.match(/\[(.*?)\]/g) || [key];
+    parts.forEach(p => {
+      const cleanKey = p.replace(/[\[\]]/g, '').trim();
+      if (cleanKey) {
+        cleanData[cleanKey] = (cleanData[cleanKey] || 0) + count;
+      }
+    });
+  });
+
+  const totalResponses = Object.values(cleanData).reduce((sum, count) => sum + count, 0);
+  const chartData = Object.entries(cleanData).map(([name, count]) => ({
     name,
     value: count,
     percentage: ((count / totalResponses) * 100).toFixed(0)
