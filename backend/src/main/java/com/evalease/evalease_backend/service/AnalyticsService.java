@@ -148,7 +148,17 @@ public class AnalyticsService {
         dto.setFormId(formId);
         dto.setQuestionCount(form.getQuestions().size());
         dto.setTotalResponses(submittedForms.size());
-        double avg = ratingCount > 0 ? totalRating / ratingCount : 0.0;
+        SentimentResult sentimentResult;
+        try {
+            sentimentResult = sentimentService.analyzeSentiment(allComments.toString());
+        } catch (Exception e) {
+            sentimentResult = new SentimentResult("neutral", 0.0);
+        }
+        
+        if (sentimentResult == null) {
+            sentimentResult = new SentimentResult("neutral", 0.0);
+        }
+        
         dto.setAverageRating(Math.min(5.0, avg));
         dto.setSentiment(sentimentResult);
         dto.setQuestions(getQuestionAnalyticsByFormId(formId));

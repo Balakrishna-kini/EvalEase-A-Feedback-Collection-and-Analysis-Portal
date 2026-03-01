@@ -156,7 +156,7 @@ const SessionAnalytics: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Avg. Satisfaction</p>
-                <p className="text-2xl font-bold text-gray-900">{analyticsData.averageRating?.toFixed(1) || '0.0'}/5.0</p>
+                <p className="text-2xl font-bold text-gray-900">{(analyticsData.averageRating || 0).toFixed(1)}/5.0</p>
               </div>
             </CardContent>
           </Card>
@@ -168,7 +168,7 @@ const SessionAnalytics: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Sentiment Score</p>
-                <p className="text-2xl font-bold text-gray-900">{(analyticsData.averageSentiment * 100).toFixed(0)}%</p>
+                <p className="text-2xl font-bold text-gray-900">{((analyticsData.averageSentiment || 0) * 100).toFixed(0)}%</p>
               </div>
             </CardContent>
           </Card>
@@ -176,7 +176,7 @@ const SessionAnalytics: React.FC = () => {
 
         {/* Dynamic Question Charts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {(analyticsData?.questions || []).map((q, index) => (
+          {Array.isArray(analyticsData?.questions) && analyticsData.questions.map((q, index) => (
             <Card key={index} className="border-none shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-shadow">
               <CardHeader className="pb-2 border-b border-gray-50 px-8 py-6">
                 <div className="flex items-start justify-between">
@@ -227,9 +227,9 @@ const SessionAnalytics: React.FC = () => {
             </div>
           </div>
 
-          {suggestions && (suggestions || []).length > 0 ? (
+          {Array.isArray(suggestions) && suggestions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {(suggestions || []).map((suggestion, idx) => (
+              {suggestions.map((suggestion, idx) => (
                 <Card key={idx} className="border-none shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-xl transition-all border-l-4 border-l-blue-500">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start mb-4">

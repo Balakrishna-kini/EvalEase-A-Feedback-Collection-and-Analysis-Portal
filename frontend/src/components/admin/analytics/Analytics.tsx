@@ -93,20 +93,24 @@ const Analytics: React.FC = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  const participationData = (responseCounts || []).map((item) => {
-    const formName = item?.form || "Untitled";
-    return {
-      name: formName.length > 15 ? `${formName.substring(0, 15)}...` : formName,
-      fullName: formName,
-      responses: item?.responses || 0,
-    };
-  });
+  const participationData = Array.isArray(responseCounts) 
+    ? responseCounts.map((item) => {
+        const formName = item?.form || "Untitled";
+        return {
+          name: formName.length > 15 ? `${formName.substring(0, 15)}...` : formName,
+          fullName: formName,
+          responses: item?.responses || 0,
+        };
+      })
+    : [];
 
   const sentimentCounts: { [key: string]: number } = {};
-  (sentimentData || []).forEach((form) => {
-    const category = form?.category || "Unknown";
-    sentimentCounts[category] = (sentimentCounts[category] || 0) + 1;
-  });
+  if (Array.isArray(sentimentData)) {
+    sentimentData.forEach((form) => {
+      const category = form?.category || "Unknown";
+      sentimentCounts[category] = (sentimentCounts[category] || 0) + 1;
+    });
+  }
 
   const ratingDistribution = Object.entries(sentimentCounts).map(
     ([category, count]) => ({
@@ -121,11 +125,11 @@ const Analytics: React.FC = () => {
           ? "#f59e0b"
           : category === "Negative"
           ? "#ef4444"
-          : "#94a3b8", // Gray for unknown
+          : "#94a3b8",
     })
   );
 
-  const globalAvgSentiment = sentimentData && sentimentData.length > 0
+  const globalAvgSentiment = Array.isArray(sentimentData) && sentimentData.length > 0
     ? (sentimentData.reduce((acc, curr) => acc + (curr?.averageSentiment || 0), 0) / sentimentData.length)
     : 0;
 
@@ -155,7 +159,7 @@ const Analytics: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-blue-100 text-sm font-medium mb-1 uppercase tracking-wider">Total Active Forms</p>
-                  <p className="text-4xl font-bold">{summary?.totalForms || forms?.length || 0}</p>
+                  <p className="text-4xl font-bold">{summary?.totalForms || (Array.isArray(forms) ? forms.length : 0)}</p>
                 </div>
                 <div className="bg-white/20 p-2 rounded-xl">
                   <TrendingUp className="w-6 h-6" />
@@ -170,7 +174,7 @@ const Analytics: React.FC = () => {
                 <div>
                   <p className="text-gray-500 text-sm font-medium mb-1 uppercase tracking-wider">Overall Responses</p>
                   <p className="text-4xl font-bold text-gray-900">
-                    {summary?.totalResponses || (responseCounts || []).reduce((acc, curr) => acc + (curr?.responses || 0), 0)}
+                    {summary?.totalResponses || (Array.isArray(responseCounts) ? responseCounts.reduce((acc, curr) => acc + (curr?.responses || 0), 0) : 0)}
                   </p>
                 </div>
                 <div className="bg-green-50 p-2 rounded-xl">
@@ -242,10 +246,10 @@ const Analytics: React.FC = () => {
                 <div className="w-1 h-4 bg-blue-600 rounded-full"></div>
                 <CardTitle className="text-lg font-bold text-gray-800">Participation by Form</CardTitle>
               </div>
-              <p className="text-xs text-gray-500 font-medium uppercase tracking-widest">Responses per training session</p>
+              <p className="text-xs text-gray-500 font-medium uppercase tracking-widest">Responses received per training session</p>
             </CardHeader>
             <CardContent className="p-8">
-              <div className="h-[300px]">
+              <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={participationData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -263,7 +267,7 @@ const Analytics: React.FC = () => {
                     <Tooltip 
                       cursor={{ fill: '#f8fafc' }}
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                      labelFormatter={(value, name) => participationData.find(d => d.name === value)?.fullName || value}
+                      labelFormatter={(value) => participationData.find(d => d.name === value)?.fullName || value}
                     />
                     <Bar dataKey="responses" fill="#3b82f6" radius={[6, 6, 0, 0]} barSize={32} />
                   </BarChart>
@@ -318,8 +322,8 @@ const Analytics: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {(forms || []).map((form) => {
-              const formSentiment = (sentimentData || []).find(s => s.formId === form.id);
+            {Array.isArray(forms) && forms.filter(f => f && f.id).map((form) => {
+              const formSentiment = Array.isArray(sentimentData) ? sentimentData.find(s => s && s.formId === form.id) : null;
               return (
                 <Card 
                   key={form.id} 
@@ -349,7 +353,7 @@ const Analytics: React.FC = () => {
                         <div className="flex flex-col">
                           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Responses</span>
                           <span className="text-sm font-bold text-gray-800">
-                            {(responseCounts || []).find(r => r.form === form.title)?.responses || 0}
+                            {Array.isArray(responseCounts) ? (responseCounts.find(r => r && r.form === form.title)?.responses || 0) : 0}
                           </span>
                         </div>
                       </div>
