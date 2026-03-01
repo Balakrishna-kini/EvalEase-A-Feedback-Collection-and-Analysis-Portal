@@ -56,10 +56,15 @@ const EmployeeDashboard = ({ user, onLogout }) => {
   const [history, setHistory] = useState<SubmissionHistory[]>([]);
   const [selectedHistory, setSelectedHistory] = useState<SubmissionHistory | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [showCertificate, setShowCertificate] = useState<SubmissionHistory | null>(null);
 
   const handleLogout = () => {
     onLogout();
     navigate("/login");
+  };
+
+  const handlePrintCertificate = () => {
+    window.print();
   };
 
   const fetchEmployeeForms = useCallback(async () => {
@@ -200,12 +205,8 @@ const EmployeeDashboard = ({ user, onLogout }) => {
             <button 
               onClick={() => {
                 fetchHistory();
-                // We'll open the detail view if we find it in the list
                 const sub = history.find(h => h.formTitle === form.title);
                 if (sub) setSelectedHistory(sub);
-                else {
-                    // Trigger refresh and wait for user to click history tab or we show a notification
-                }
               }}
               className="w-full py-2.5 px-4 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-800/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
             >
@@ -304,19 +305,9 @@ const EmployeeDashboard = ({ user, onLogout }) => {
               className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white text-sm"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => { fetchHistory(); setViewMode('list'); }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-none' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'}`}
-            >
-              <History className="h-4 w-4" />
-              History View
-            </button>
-            <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2" />
-            <div className="flex items-center gap-2 p-1 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl">
-                <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}><LayoutGrid className="h-4 w-4" /></button>
-                <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}><ListIcon className="h-4 w-4" /></button>
-            </div>
+          <div className="flex items-center gap-2 p-1 bg-slate-200/50 dark:bg-slate-800/50 rounded-xl">
+              <button onClick={() => setViewMode('grid')} className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}><LayoutGrid className="h-4 w-4" /></button>
+              <button onClick={() => setViewMode('list')} className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}><ListIcon className="h-4 w-4" /></button>
           </div>
         </div>
 
@@ -328,7 +319,6 @@ const EmployeeDashboard = ({ user, onLogout }) => {
           </div>
         ) : (
           <div className="space-y-12">
-            {/* Pending Section */}
             <section>
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Required Feedback</h2>
@@ -346,7 +336,6 @@ const EmployeeDashboard = ({ user, onLogout }) => {
               )}
             </section>
 
-            {/* Completed Section */}
             <section>
               <div className="flex items-center gap-3 mb-6">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Submission History</h2>
@@ -392,7 +381,10 @@ const EmployeeDashboard = ({ user, onLogout }) => {
                         <p className="text-emerald-900 dark:text-emerald-100 font-semibold">Feedback Successfully Verified</p>
                     </div>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-200 dark:shadow-none">
+                <button 
+                    onClick={() => setShowCertificate(selectedHistory)}
+                    className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-200 dark:shadow-none"
+                >
                     <Download className="h-3.5 w-3.5" />
                     Certificate
                 </button>
@@ -429,6 +421,93 @@ const EmployeeDashboard = ({ user, onLogout }) => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Certificate Modal */}
+      {showCertificate && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl print:shadow-none print:w-full print:max-w-none print:m-0 print:rounded-none">
+                <div className="p-4 bg-slate-50 border-b flex justify-between items-center print:hidden">
+                    <button onClick={() => setShowCertificate(null)} className="text-slate-500 hover:text-slate-800 flex items-center gap-1 text-sm font-medium">
+                        <X className="h-4 w-4" /> Cancel
+                    </button>
+                    <button 
+                        onClick={() => window.print()}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-blue-700 transition-all"
+                    >
+                        <Download className="h-4 w-4" /> Save as PDF / Print
+                    </button>
+                </div>
+
+                <div id="certificate-content" className="p-12 text-center bg-white relative print:p-8">
+                    <div className="absolute inset-8 border-4 border-double border-slate-200 pointer-events-none" />
+                    
+                    <div className="relative z-10">
+                        <div className="flex justify-center mb-6">
+                            <div className="p-4 bg-blue-50 rounded-full">
+                                <Award className="h-16 w-16 text-blue-600" />
+                            </div>
+                        </div>
+                        
+                        <h1 className="text-3xl font-serif font-bold text-slate-900 mb-2 uppercase tracking-widest">
+                            Certificate of Participation
+                        </h1>
+                        <p className="text-slate-500 font-medium italic mb-8">Training Feedback Completion</p>
+                        
+                        <div className="mb-10">
+                            <p className="text-slate-600 text-lg mb-2">This is to certify that</p>
+                            <h2 className="text-2xl font-bold text-slate-900 underline decoration-blue-600/30 underline-offset-8">
+                                {user?.name || "Valued Employee"}
+                            </h2>
+                        </div>
+
+                        <div className="mb-10 px-12">
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                Has successfully completed the professional evaluation for the training session:
+                            </p>
+                            <h3 className="text-xl font-bold text-slate-800 mt-2">
+                                {showCertificate.formTitle}
+                            </h3>
+                        </div>
+
+                        <div className="flex justify-center items-center gap-12 mt-12 pt-8 border-t border-slate-100">
+                            <div className="text-center">
+                                <p className="text-xs text-slate-400 uppercase font-bold tracking-tighter mb-1">Date of Submission</p>
+                                <p className="text-sm font-bold text-slate-700">{formatDate(showCertificate.submittedAt)}</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-xs text-slate-400 uppercase font-bold tracking-tighter mb-1">Verification ID</p>
+                                <p className="text-sm font-bold text-slate-700">EV-{showCertificate.submissionId}-{user?.id || '000'}</p>
+                            </div>
+                        </div>
+
+                        <div className="mt-12">
+                            <div className="h-10 w-48 mx-auto flex items-center justify-center opacity-30 grayscale pointer-events-none">
+                                <div className="h-0.5 w-full bg-slate-900" />
+                                <span className="absolute px-4 bg-white text-[10px] font-bold uppercase tracking-widest">EvalEase Official</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <style dangerouslySetInnerHTML={{ __html: `
+                @media print {
+                    body * { visibility: hidden; }
+                    #certificate-content, #certificate-content * { visibility: visible; }
+                    #certificate-content { 
+                        position: fixed !important; 
+                        left: 0 !important; 
+                        top: 0 !important; 
+                        width: 100% !important; 
+                        height: 100% !important; 
+                        margin: 0 !important; 
+                        padding: 2cm !important;
+                        background: white !important;
+                    }
+                }
+            `}} />
         </div>
       )}
     </div>

@@ -91,9 +91,32 @@ const Analytics: React.FC = () => {
     }
   }, [showSubmissionsModal]);
 
-  const handleExportCSV = (formId: number, title: string) => {
-    const token = localStorage.getItem('token');
-    window.location.href = `${API_BASE_URL}/api/analytics/forms/${formId}/export/csv?access_token=${token}`;
+  const handleExportCSV = async (formId: number, title: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/api/analytics/forms/${formId}/export/csv`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Feedback_Report_${title.replace(/\s+/g, '_')}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Export error:", error);
+      alert("Failed to export report. Please check your permissions.");
+    }
   };
 
   useEffect(() => {
@@ -455,7 +478,7 @@ const Analytics: React.FC = () => {
             <CardContent className="p-8 pt-4 flex flex-col items-center">
               <div className="bg-white p-6 rounded-3xl shadow-inner mb-8">
                 <QRCodeSVG 
-                  value={`${window.location.origin}/employee/forms/${showQrModal}`} 
+                  value={`${window.location.origin}/employee/feedback/${showQrModal}`} 
                   size={200}
                   level="H"
                   includeMargin={true}
