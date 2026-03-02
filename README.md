@@ -5,10 +5,9 @@ EvalEase is a full-stack training feedback intelligence platform designed to col
 Instead of manual feedback collection and spreadsheet analysis, EvalEase transforms responses into **actionable insights** using analytics dashboards, AI sentiment analysis, and automated reporting tools.
 
 ---
-
 ## 🌐 Application Preview
 
-<img width="1793" height="833" alt="Landing_page" src="https://github.com/user-attachments/assets/ae68037f-a3d3-42a8-8203-64bb627d46ba" />
+[![Landing Page](https://github.com/user-attachments/assets/ae68037f-a3d3-42a8-8203-64bb627d46ba)](https://evaleaseui.netlify.app)
 
 
 ---
@@ -107,5 +106,5 @@ EvalEase integrates an AI microservice that:
 ### 1️⃣ Clone Repository
 
 ```bash
-git clone https://github.com/Abheeshta-P/EvalEase.git
+git clone https://github.com/Balakrishna-kini/EvalEase-A-Feedback-Collection-and-Analysis-Portal.git
 cd evalease
