@@ -18,9 +18,9 @@ public interface ResponseRepository extends JpaRepository<Response, Long> {
     int countAllResponses();
 
     @Query(value = """
-        SELECT AVG(CAST(r.answer AS DECIMAL)) FROM response r
+        SELECT AVG(CAST(r.answer AS DOUBLE PRECISION)) FROM response r
         JOIN question q ON r.question_id = q.id
-        WHERE q.type = 'rating' LIMIT 1000
+        WHERE q.type = 'rating' AND r.answer ~ '^[0-9]+(\\.[0-9]+)?$'
         """, nativeQuery = true)
     Double findAverageRatingForRatingQuestions();
 }
