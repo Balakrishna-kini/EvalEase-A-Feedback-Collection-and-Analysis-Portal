@@ -9,9 +9,10 @@ const Signup = ({ setUser }) => {
     email: "",
     password: "",
     confirmPassword: "",
-    userType: "employee", // Default user type
+    userType: "employee",
   });
-  const [message, setMessage] = useState({ type: "", text: "" }); // State for custom message box
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,19 +22,29 @@ const Signup = ({ setUser }) => {
     });
   };
 
-  // Function to show custom messages (success/error)
   const showMessage = (type, text) => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: "", text: "" }), 3000);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+    if (isSubmitting) return;
 
     const apiBaseUrl = API_BASE_URL;
     if (!apiBaseUrl) {
       console.error("API_BASE_URL is not defined in config.ts");
       showMessage("error", "Server configuration error. Please contact admin.");
+      setIsSubmitting(false);
+      return;
+    }
+    if (
+      typeof window !== "undefined" &&
+      window.location.hostname !== "localhost" &&
+      /localhost|127\.0\.0\.1/i.test(apiBaseUrl)
+    ) {
+      showMessage("error", "Frontend is misconfigured to call localhost API.");
+      setIsSubmitting(false);
       return;
     }
 
@@ -42,7 +53,7 @@ const Signup = ({ setUser }) => {
       return;
     }
 
-    // Send name, email, password, and role (userType)
+    setIsSubmitting(true);
     const payload = {
       name: formData.name,
       email: formData.email,
@@ -51,17 +62,13 @@ const Signup = ({ setUser }) => {
     };
 
     try {
-      const res = await fetch(
-        `${apiBaseUrl}/api/employees`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const res = await fetch(`${apiBaseUrl}/api/employees`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       if (!res.ok) {
-        // Attempt to parse error message from response, or use default
         const errorText = await res.text();
         let errorMessage = "Signup failed. Please try again.";
         try {
@@ -75,10 +82,10 @@ const Signup = ({ setUser }) => {
             errorMessage = errorData.message || res.statusText || errorMessage;
           }
         } catch (parseError) {
-          // If response is not JSON, use the raw text or default message
           errorMessage = errorText || res.statusText || errorMessage;
         }
         showMessage("error", errorMessage);
+        setIsSubmitting(false);
         return;
       }
 
@@ -88,10 +95,10 @@ const Signup = ({ setUser }) => {
       if (!authResponse || !authResponse.token) {
         console.error("Signup response missing token:", authResponse);
         showMessage("error", "Signup failed. Invalid response from server.");
+        setIsSubmitting(false);
         return;
       }
 
-      // Store user data and token in localStorage consistently
       localStorage.setItem("token", authResponse.token);
       localStorage.setItem("employeeId", authResponse.id);
       localStorage.setItem("userType", formData.userType);
@@ -107,21 +114,22 @@ const Signup = ({ setUser }) => {
 
       localStorage.setItem("loggedInUser", JSON.stringify(userData));
 
-      setUser(userData); // Update parent component state
+      setUser(userData);
 
-      // Navigate based on user type
       if (formData.userType === "admin") {
         setTimeout(() => navigate("/admin/dashboard"), 100);
       } else {
         setTimeout(() => navigate("/employee/dashboard"), 100);
       }
       showMessage("success", "Signup successful!");
+      setIsSubmitting(false);
     } catch (err) {
       console.error("Signup failed", err);
       showMessage(
         "error",
         "Signup failed. Network error or server unreachable. Please try again."
       );
+      setIsSubmitting(false);
     }
   };
 
@@ -138,7 +146,6 @@ const Signup = ({ setUser }) => {
           <p className="mt-2 text-sm text-gray-600">Create your account</p>
         </div>
 
-        {/* Custom Message Box */}
         {message.text && (
           <div
             className={`p-4 rounded-lg flex items-center justify-between ${
@@ -157,7 +164,7 @@ const Signup = ({ setUser }) => {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
             <div>
               <label
@@ -280,9 +287,16 @@ const Signup = ({ setUser }) => {
 
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-200 ease-in-out transform hover:scale-105"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            aria-busy={isSubmitting}
+            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out ${
+              isSubmitting
+                ? "bg-green-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700 transform hover:scale-105"
+            }`}
           >
-            Create Account
+            {isSubmitting ? "Creating..." : "Create Account"}
           </button>
 
           <div className="text-center">

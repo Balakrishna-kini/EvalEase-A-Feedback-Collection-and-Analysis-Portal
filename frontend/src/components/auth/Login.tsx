@@ -1,41 +1,51 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { User, Lock, LogIn, XCircle, Mail } from "lucide-react"; // Import XCircle and Mail
+import { User, Lock, LogIn, XCircle, Mail } from "lucide-react";
 import { API_BASE_URL } from "../../config";
 
 const Login = ({ setUser }) => {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState(""); // Retain password for UI, even if not used by backend for employee login
+  const [password, setPassword] = useState("");
   const [userType, setUserType] = useState("employee");
-  const [message, setMessage] = useState({ type: "", text: "" }); // State for custom message box
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
-  // Function to show custom messages (success/error)
   const showMessage = (type, text) => {
     setMessage({ type, text });
-    setTimeout(() => setMessage({ type: "", text: "" }), 3000); // Clear message after 3 seconds
+    setTimeout(() => setMessage({ type: "", text: "" }), 3000);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === "function") e.preventDefault();
+
+    if (isSubmitting) return;
+    if (!email || !password) return;
+    setIsSubmitting(true);
 
     const apiBaseUrl = API_BASE_URL;
     if (!apiBaseUrl) {
       console.error("API_BASE_URL is not defined in config.ts");
       showMessage("error", "Server configuration error. Please contact admin.");
+      setIsSubmitting(false);
+      return;
+    }
+    if (
+      typeof window !== "undefined" &&
+      window.location.hostname !== "localhost" &&
+      /localhost|127\.0\.0\.1/i.test(apiBaseUrl)
+    ) {
+      showMessage("error", "Frontend is misconfigured to call localhost API.");
+      setIsSubmitting(false);
       return;
     }
 
     try {
-      // Use the unified login endpoint for both Employee and Admin
-      const res = await fetch(
-        `${apiBaseUrl}/api/employees/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      const res = await fetch(`${apiBaseUrl}/api/employees/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       if (!res.ok) {
         const errorText = await res.text();
@@ -47,6 +57,7 @@ const Login = ({ setUser }) => {
           errorMessage = errorText || res.statusText || errorMessage;
         }
         showMessage("error", errorMessage);
+        setIsSubmitting(false);
         return;
       }
 
@@ -56,16 +67,15 @@ const Login = ({ setUser }) => {
       if (!authResponse || !authResponse.token) {
         console.error("Auth response missing token:", authResponse);
         showMessage("error", "Login failed. Invalid response from server.");
+        setIsSubmitting(false);
         return;
       }
 
-      // Store user data and token in localStorage consistently
       localStorage.setItem("token", authResponse.token);
       localStorage.setItem("employeeId", authResponse.id);
       localStorage.setItem("employeeName", authResponse.name);
       
-      // Determine userType based on backend role
-      const backendRole = authResponse.role; // e.g., "ADMIN" or "EMPLOYEE"
+      const backendRole = authResponse.role;
       const normalizedUserType = backendRole.toLowerCase();
       localStorage.setItem("userType", normalizedUserType);
       
@@ -79,9 +89,8 @@ const Login = ({ setUser }) => {
 
       localStorage.setItem("loggedInUser", JSON.stringify(userData));
 
-      setUser(userData); // Update parent component state
+      setUser(userData);
       
-      // Redirect based on role
       if (backendRole === "ADMIN") {
         setTimeout(() => navigate("/admin/dashboard"), 100);
       } else {
@@ -89,12 +98,14 @@ const Login = ({ setUser }) => {
       }
       
       showMessage("success", "Login successful!");
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Error during Login:", error);
       showMessage(
         "error",
         "Login failed. Please check your credentials and try again."
       );
+      setIsSubmitting(false);
     }
   };
 
@@ -109,7 +120,6 @@ const Login = ({ setUser }) => {
           <p className="mt-2 text-sm text-gray-600">Sign in to your account</p>
         </div>
 
-        {/* Custom Message Box */}
         {message.text && (
           <div
             className={`p-4 rounded-lg flex items-center justify-between ${
@@ -128,7 +138,7 @@ const Login = ({ setUser }) => {
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -158,21 +168,6 @@ const Login = ({ setUser }) => {
               </div>
             </div>
 
-            {/* Removed name field from Login as it's not needed for employee lookup by email */}
-            {/* <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter your name"
-              />
-            </div> */}
-
             <div>
               <label
                 htmlFor="login-email"
@@ -185,6 +180,7 @@ const Login = ({ setUser }) => {
                 <input
                   id="login-email"
                   type="email"
+                  name="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -206,6 +202,7 @@ const Login = ({ setUser }) => {
                 <input
                   id="login-password"
                   type="password"
+                  name="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -218,9 +215,16 @@ const Login = ({ setUser }) => {
 
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-200 ease-in-out transform hover:scale-105"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            aria-busy={isSubmitting}
+            className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-lg font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-200 ease-in-out ${
+              isSubmitting
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 transform hover:scale-105"
+            }`}
           >
-            Sign In
+            {isSubmitting ? "Signing In..." : "Sign In"}
           </button>
 
           <div className="text-center">
