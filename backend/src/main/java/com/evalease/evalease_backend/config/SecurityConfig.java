@@ -44,7 +44,7 @@ public class SecurityConfig {
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // Explicitly permit all preflight requests
                         .requestMatchers("/api/employees/**", "/login", "/signup").permitAll() // Publicly accessible endpoints
                         .requestMatchers("/api/forms/**", "/api/responses/**", "/api/employee-dashboard/**").hasAnyRole("EMPLOYEE", "ADMIN")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/admin/**", "/api/analytics/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

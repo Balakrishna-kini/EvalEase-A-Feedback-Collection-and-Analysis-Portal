@@ -66,8 +66,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   useEffect(() => {
     const apiBaseUrl = API_BASE_URL;
     const token = localStorage.getItem('token');
-    if (!apiBaseUrl) {
-      console.error("API_BASE_URL is not defined in config.ts");
+    if (!apiBaseUrl || !token) {
       return;
     }
     axios
@@ -76,15 +75,7 @@ const AdminDashboard = ({ user, onLogout }) => {
       })
       .then((res) => setRecentForms(res.data))
       .catch((err) => console.error("Error fetching forms:", err));
-  }, []);
 
-  useEffect(() => {
-    const apiBaseUrl = API_BASE_URL;
-    const token = localStorage.getItem('token');
-    if (!apiBaseUrl) {
-      console.error("API_BASE_URL is not defined in config.ts");
-      return;
-    }
     axios
       .get(`${apiBaseUrl}/admin/dashboard/stats`, {
         headers: { Authorization: `Bearer ${token}` }
