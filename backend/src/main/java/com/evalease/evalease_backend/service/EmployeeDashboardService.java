@@ -37,7 +37,8 @@ public class EmployeeDashboardService {
         Map<Long, LocalDateTime> submittedFormTimestamps = submittedFormsByEmployee.stream()
                 .collect(Collectors.toMap(
                         sf -> sf.getForm().getId(),
-                        SubmittedForm::getSubmittedAt
+                        SubmittedForm::getSubmittedAt,
+                        (existing, replacement) -> existing.isAfter(replacement) ? existing : replacement
                 ));
 
         List<DashboardFormDTO> pendingForms = allForms.stream()

@@ -106,11 +106,19 @@ public class SentimentService {
     }
 
     public SentimentResult analyzeSentimentBatch(List<String> texts) {
+        if (texts == null || texts.isEmpty()) {
+            return new SentimentResult("neutral", 0.0, 0.0, 0.0, 100.0);
+        }
+
+        // Parallel processing to speed up sentiment analysis
+        List<SentimentResult> results = texts.parallelStream()
+                .map(this::analyzeSentiment)
+                .collect(Collectors.toList());
+
         double totalScore = 0.0;
         int positive = 0, negative = 0, neutral = 0;
 
-        for (String text : texts) {
-            SentimentResult result = analyzeSentiment(text);
+        for (SentimentResult result : results) {
             double score = result.getScore();
             totalScore += score;
 
@@ -119,12 +127,12 @@ public class SentimentService {
             else neutral++;
         }
 
-        double avg = texts.isEmpty() ? 0.0 : totalScore / texts.size();
+        double avg = totalScore / texts.size();
         String polarity = avg > 0.1 ? "positive" : (avg < -0.1 ? "negative" : "neutral");
 
-        double positivePct = texts.isEmpty() ? 0.0 : (positive * 100.0 / texts.size());
-        double negativePct = texts.isEmpty() ? 0.0 : (negative * 100.0 / texts.size());
-        double neutralPct = texts.isEmpty() ? 0.0 : (neutral * 100.0 / texts.size());
+        double positivePct = positive * 100.0 / texts.size();
+        double negativePct = negative * 100.0 / texts.size();
+        double neutralPct = neutral * 100.0 / texts.size();
 
         SentimentResult result = new SentimentResult(polarity, avg, positivePct, negativePct, neutralPct);
         result.setPositiveCount(positive);

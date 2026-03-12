@@ -70,12 +70,23 @@ public class EmployeeController {
     // New proper Login endpoint
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
+        Employee employee = employeeRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+
+        // Validate that the role matches the UI choice if provided
+        if (loginRequest.getRole() != null && !loginRequest.getRole().isEmpty()) {
+            String requestedRole = loginRequest.getRole().toUpperCase();
+            String actualRole = employee.getRole().name();
+            
+            if (!requestedRole.equals(actualRole)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "Incorrect User Type. Please select the correct type."));
+            }
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
         );
-
-        Employee employee = employeeRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
 
         String token = jwtUtil.generateToken(employee.getEmail(), employee.getRole().name());
 

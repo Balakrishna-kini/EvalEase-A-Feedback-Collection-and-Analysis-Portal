@@ -44,7 +44,7 @@ const Login = ({ setUser }) => {
       const res = await fetch(`${apiBaseUrl}/api/employees/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role: userType }),
       });
 
       if (!res.ok) {
@@ -56,6 +56,12 @@ const Login = ({ setUser }) => {
         } catch (parseError) {
           errorMessage = errorText || res.statusText || errorMessage;
         }
+        
+        // Custom check for role mismatch (from backend)
+        if (res.status === 403 && errorMessage.includes("Incorrect User Type")) {
+            errorMessage = "Incorrect User Type. Please select the correct type.";
+        }
+        
         showMessage("error", errorMessage);
         setIsSubmitting(false);
         return;
