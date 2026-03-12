@@ -11,6 +11,7 @@ import org.springframework.http.*;
 import com.evalease.evalease_backend.dto.SentimentResult;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class SentimentService {
