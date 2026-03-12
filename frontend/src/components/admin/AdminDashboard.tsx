@@ -14,6 +14,7 @@ import {
   Trash2,
   Calendar,
 } from "lucide-react";
+import { toast } from "sonner";
 import ThemeSwitcher from "../ThemeSwitcher";
 import { API_BASE_URL } from "../../config";
 
@@ -185,9 +186,9 @@ const AdminDashboard = ({ user, onLogout }) => {
 
         <div className="grid grid-cols-1 gap-4">
           {recentForms.length > 0 ? (
-            recentForms.map((form, index) => (
+            recentForms.map((form) => (
               <div
-                key={index}
+                key={form.id} // Use stable ID for key
                 className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-md transition-all duration-200"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
