@@ -20,11 +20,19 @@ public interface FormRepository extends JpaRepository<Form, Long> {
     Optional<Form> findFormWithQuestionsAndOptions(@Param("id") Long id);
 
     Optional<Form> findByTitle(String title);
-    @Query("SELECT new com.evalease.evalease_backend.dto.RecentFormDTO(f.id, f.title, f.createdAt, COUNT(sf)) " +
-        "FROM Form f LEFT JOIN SubmittedForm sf ON sf.form = f " +
-        "GROUP BY f.id, f.title, f.createdAt " +
-        "ORDER BY f.createdAt DESC")
-    List<RecentFormDTO> findTop5RecentFormsWithResponseCount(Pageable pageable);
+    @Query("""
+SELECT new com.evalease.evalease_backend.dto.RecentFormDTO(
+    f.id,
+    f.title,
+    f.createdAt,
+    COUNT(sf)
+)
+FROM Form f
+LEFT JOIN SubmittedForm sf ON sf.form = f
+GROUP BY f.id, f.title, f.createdAt
+ORDER BY f.createdAt DESC
+""")
+List<RecentFormDTO> findTop5RecentFormsWithResponseCount(Pageable pageable);
 
     @Query("SELECT COUNT(f) FROM Form f")
     int countAllForms();

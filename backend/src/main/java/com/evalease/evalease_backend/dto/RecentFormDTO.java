@@ -1,5 +1,4 @@
 package com.evalease.evalease_backend.dto;
-import com.evalease.evalease_backend.entity.Form;
 
 import java.time.Instant;
 import lombok.*;
@@ -8,10 +7,11 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class RecentFormDTO {
-    private Long formId;
+
+    private Long id;
     private String title;
     private Instant createdAt;
     private Long responseCount;
+
 }
