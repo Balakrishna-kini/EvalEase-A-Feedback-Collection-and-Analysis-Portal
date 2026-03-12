@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.PageRequest; 
 
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,6 +84,57 @@ public class FormService {
 
         public List<Form> getAllForms() {
                 return formRepository.findAll();
+        }
+
+        @Transactional
+        public Form updateForm(Long id, FormDTO formDTO) {
+                Form form = formRepository.findById(id)
+                                .orElseThrow(() -> new RuntimeException("Form not found with id: " + id));
+
+                // Check if another form already has the same title
+                if (formRepository.findAll().stream()
+                                .anyMatch(f -> f.getTitle().equals(formDTO.getTitle()) && !f.getId().equals(id))) {
+                        throw new IllegalArgumentException("Another form with the same title already exists.");
+                }
+
+                form.setTitle(formDTO.getTitle());
+                form.setDescription(formDTO.getDescription());
+                form.setDeadline(formDTO.getDeadline());
+                form.setCategory(formDTO.getCategory());
+
+                // Clear existing questions and add new ones (CascadeType.ALL + orphanRemoval handles cleanup)
+                form.getQuestions().clear();
+
+                for (QuestionDTO questionDTO : formDTO.getQuestions()) {
+                        Question question = Question.builder()
+                                        .title(questionDTO.getTitle())
+                                        .type(questionDTO.getType())
+                                        .required(questionDTO.isRequired())
+                                        .ratingScale(questionDTO.getRatingScale())
+                                        .form(form)
+                                        .build();
+
+                        if (questionDTO.getOptions() != null) {
+                                List<OptionItem> options = questionDTO.getOptions().stream()
+                                                .map(opt -> OptionItem.builder()
+                                                                .value(opt)
+                                                                .question(question)
+                                                                .build())
+                                                .collect(Collectors.toList());
+                                question.setOptions(options);
+                        }
+                        form.getQuestions().add(question);
+                }
+
+                return formRepository.save(form);
+        }
+
+        @Transactional
+        public void deleteForm(Long id) {
+                if (!formRepository.existsById(id)) {
+                        throw new RuntimeException("Form not found with id: " + id);
+                }
+                formRepository.deleteById(id);
         }
 
         public FormDTO getFormDTOById(Long id) {

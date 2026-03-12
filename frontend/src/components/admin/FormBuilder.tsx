@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   Plus,
   Trash2,
@@ -10,6 +10,7 @@ import {
   Circle,
   Save,
   Eye,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +19,7 @@ import { API_BASE_URL } from "../../config";
 type InputTypes = "rating" | "text" | "textarea" | "multiple" | "checkbox";
 
 type Question = {
-  id: number;
+  id?: number;
   type: InputTypes;
   title: string;
   required: boolean;
@@ -33,13 +34,60 @@ type QuestionType = {
 };
 
 const FormBuilder = () => {
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
   const [formTitle, setFormTitle] = useState<string>("");
   const [formDescription, setFormDescription] = useState<string>("");
   const [deadline, setDeadline] = useState<string>("");
   const [category, setCategory] = useState<string>("General");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isEditMode) {
+      fetchFormDetails();
+    }
+  }, [id]);
+
+  const fetchFormDetails = async () => {
+    const apiBaseUrl = API_BASE_URL;
+    const token = localStorage.getItem('token');
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/forms/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error("Failed to fetch form details");
+      const data = await res.json();
+      
+      setFormTitle(data.title);
+      setFormDescription(data.description || "");
+      setCategory(data.category || "General");
+      
+      if (data.deadline) {
+        // Convert ISO to datetime-local format (YYYY-MM-DDThh:mm)
+        const date = new Date(data.deadline);
+        const localDateTime = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+          .toISOString()
+          .slice(0, 16);
+        setDeadline(localDateTime);
+      }
+      
+      setQuestions(data.questions.map((q: any) => ({
+        ...q,
+        options: q.options || []
+      })));
+    } catch (err) {
+      console.error("Error fetching form:", err);
+      toast.error("Failed to load form details");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const categories = ["General", "Technical", "Soft Skills", "Product Training", "Onboarding", "Quarterly Review"];
 
@@ -63,17 +111,20 @@ const FormBuilder = () => {
     setQuestions([...questions, newQuestion]);
   };
 
-  const updateQuestion = (id: number, field: keyof Question, value: any) => {
+  const updateQuestion = (id: number | undefined, field: keyof Question, value: any) => {
+    if (id === undefined) return;
     setQuestions(
       questions.map((q) => (q.id === id ? { ...q, [field]: value } : q))
     );
   };
 
-  const deleteQuestion = (id: number) => {
+  const deleteQuestion = (id: number | undefined) => {
+    if (id === undefined) return;
     setQuestions(questions.filter((q) => q.id !== id));
   };
 
-  const addOption = (questionId: number) => {
+  const addOption = (questionId: number | undefined) => {
+    if (questionId === undefined) return;
     setQuestions(
       questions.map((q) =>
         q.id === questionId
@@ -84,10 +135,11 @@ const FormBuilder = () => {
   };
 
   const updateOption = (
-    questionId: number,
+    questionId: number | undefined,
     optionIndex: number,
     value: any
   ) => {
+    if (questionId === undefined) return;
     setQuestions(
       questions.map((q) =>
         q.id === questionId
@@ -102,7 +154,8 @@ const FormBuilder = () => {
     );
   };
 
-  const deleteOption = (questionId: number, optionIndex: number) => {
+  const deleteOption = (questionId: number | undefined, optionIndex: number) => {
+    if (questionId === undefined) return;
     setQuestions(
       questions.map((q) =>
         q.id === questionId
@@ -156,13 +209,16 @@ const FormBuilder = () => {
       category: category,
       deadline: deadline ? new Date(deadline).toISOString() : null,
       questions,
-      createdAt: new Date().toISOString(),
+      createdAt: isEditMode ? undefined : new Date().toISOString(),
     };
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${apiBaseUrl}/api/forms`, {
-        method: "POST",
+      const url = isEditMode ? `${apiBaseUrl}/api/forms/${id}` : `${apiBaseUrl}/api/forms`;
+      const method = isEditMode ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
@@ -177,19 +233,18 @@ const FormBuilder = () => {
       }
 
       if (!res.ok) {
-        throw new Error("Failed to save form");
+        throw new Error(`Failed to ${isEditMode ? 'update' : 'save'} form`);
       }
 
-      const data = await res.json();
-      toast.success("Form saved successfully! 🎉");
+      toast.success(`Form ${isEditMode ? 'updated' : 'saved'} successfully! 🎉`);
 
       // redirect back one step
       setTimeout(() => {
         navigate("/admin/dashboard");
       }, 1000);
     } catch (err) {
-      console.error("Error saving form:", err);
-      toast.error("Failed to save form");
+      console.error(`Error ${isEditMode ? 'updating' : 'saving'} form:`, err);
+      toast.error(`Failed to ${isEditMode ? 'update' : 'save'} form`);
     }
   };
 
@@ -197,7 +252,7 @@ const FormBuilder = () => {
     return (
       <div
         key={question.id}
-        className="border border-gray-200 rounded-lg p-6 bg-white"
+        className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-800 shadow-sm"
       >
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
@@ -208,40 +263,41 @@ const FormBuilder = () => {
               onChange={(e) =>
                 updateQuestion(question.id, "title", e.target.value)
               }
-              className="w-full text-lg font-medium border-0 border-b-2 border-gray-200 focus:border-blue-500 focus:outline-none pb-2"
+              className="w-full text-lg font-medium border-0 border-b-2 border-gray-200 dark:border-gray-700 bg-transparent dark:text-white focus:border-blue-500 focus:outline-none pb-2"
             />
           </div>
           <button
             onClick={() => deleteQuestion(question.id)}
-            className="text-red-500 hover:text-red-700"
+            className="text-red-500 hover:text-red-700 ml-4"
           >
             <Trash2 className="h-5 w-5" />
           </button>
         </div>
 
         <div className="flex items-center space-x-4 mb-4">
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             Type: {questionTypes.find((t) => t.type === question.type)?.label}
           </span>
-          <label className="flex items-center space-x-2">
+          <label className="flex items-center space-x-2 cursor-pointer">
             <input
               type="checkbox"
               checked={question.required}
               onChange={(e) =>
                 updateQuestion(question.id, "required", e.target.checked)
               }
+              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
             />
-            <span className="text-sm text-gray-600">Required</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Required</span>
           </label>
         </div>
 
         {question.type === "rating" && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Rating Scale (1 to {question.ratingScale})
             </label>
             <select
-              value={question.ratingScale}
+              value={question.ratingScale || 5}
               onChange={(e) =>
                 updateQuestion(
                   question.id,
@@ -249,7 +305,7 @@ const FormBuilder = () => {
                   parseInt(e.target.value)
                 )
               }
-              className="border border-gray-300 rounded-md px-3 py-2"
+              className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
             >
               <option value={5}>1 to 5</option>
               <option value={10}>1 to 10</option>
@@ -259,7 +315,7 @@ const FormBuilder = () => {
 
         {(question.type === "multiple" || question.type === "checkbox") && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Options
             </label>
             <div className="space-y-2">
@@ -271,7 +327,7 @@ const FormBuilder = () => {
                     onChange={(e) =>
                       updateOption(question.id, index, e.target.value)
                     }
-                    className="flex-1 border border-gray-300 rounded-md px-3 py-2"
+                    className="flex-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
                   />
                   {question.options.length > 1 && (
                     <button
@@ -285,7 +341,7 @@ const FormBuilder = () => {
               ))}
               <button
                 onClick={() => addOption(question.id)}
-                className="text-blue-600 hover:text-blue-800 text-sm flex items-center space-x-1"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm flex items-center space-x-1"
               >
                 <Plus className="h-4 w-4" />
                 <span>Add Option</span>
@@ -297,22 +353,30 @@ const FormBuilder = () => {
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Loader2 className="h-10 w-10 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
   if (showPreview) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <header className="bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700">
           <div className="max-w-4xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => setShowPreview(false)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-800"
+                  className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white"
                 >
                   <ArrowLeft className="h-5 w-5" />
                   <span>Back to Editor</span>
                 </button>
               </div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Form Preview
               </h1>
             </div>
@@ -320,21 +384,21 @@ const FormBuilder = () => {
         </header>
 
         <div className="max-w-2xl mx-auto px-6 py-8">
-          <div className="bg-white rounded-xl shadow-sm border p-8">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-8">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               {formTitle || "Untitled Form"}
             </h1>
             {formDescription && (
-              <p className="text-gray-600 mb-8">{formDescription}</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">{formDescription}</p>
             )}
 
             <div className="space-y-6">
               {questions.map((question, index) => (
                 <div
                   key={question.id}
-                  className="border-b border-gray-200 pb-6 last:border-b-0"
+                  className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-b-0"
                 >
-                  <h3 className="text-lg font-medium text-gray-900 mb-3">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
                     {index + 1}. {question.title || "Untitled Question"}
                     {question.required && (
                       <span className="text-red-500 ml-1">*</span>
@@ -342,11 +406,11 @@ const FormBuilder = () => {
                   </h3>
 
                   {question.type === "rating" && (
-                    <div className="flex space-x-2">
-                      {[...Array(question.ratingScale)].map((_, i) => (
+                    <div className="flex space-x-2 overflow-x-auto pb-2">
+                      {[...Array(question.ratingScale || 5)].map((_, i) => (
                         <button
                           key={i}
-                          className="p-2 border border-gray-300 rounded hover:bg-gray-50"
+                          className="flex-shrink-0 w-10 h-10 border border-gray-300 dark:border-gray-600 rounded flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                         >
                           {i + 1}
                         </button>
@@ -357,7 +421,7 @@ const FormBuilder = () => {
                   {question.type === "text" && (
                     <input
                       type="text"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
                       placeholder="Your answer..."
                       disabled
                     />
@@ -365,7 +429,7 @@ const FormBuilder = () => {
 
                   {question.type === "textarea" && (
                     <textarea
-                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md px-3 py-2"
                       rows={4}
                       placeholder="Your answer..."
                       disabled
@@ -383,8 +447,9 @@ const FormBuilder = () => {
                             type="radio"
                             name={`question-${question.id}`}
                             disabled
+                            className="text-blue-600"
                           />
-                          <span>{option}</span>
+                          <span className="text-gray-700 dark:text-gray-300">{option}</span>
                         </label>
                       ))}
                     </div>
@@ -397,8 +462,8 @@ const FormBuilder = () => {
                           key={optIndex}
                           className="flex items-center space-x-2"
                         >
-                          <input type="checkbox" disabled />
-                          <span>{option}</span>
+                          <input type="checkbox" disabled className="text-blue-600 rounded" />
+                          <span className="text-gray-700 dark:text-gray-300">{option}</span>
                         </label>
                       ))}
                     </div>
@@ -440,7 +505,7 @@ const FormBuilder = () => {
                 className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 <Save className="h-4 w-4" />
-                <span>Save Form</span>
+                <span>{isEditMode ? 'Update' : 'Save'} Form</span>
               </button>
             </div>
           </div>
@@ -448,6 +513,10 @@ const FormBuilder = () => {
       </header>
 
       <div className="max-w-4xl mx-auto px-6 py-8">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+          {isEditMode ? 'Edit Feedback Form' : 'Create New Form'}
+        </h1>
+
         {/* Form Info */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">

@@ -10,6 +10,9 @@ import {
   LogOut,
   LayoutDashboard,
   Settings,
+  Edit,
+  Trash2,
+  Calendar,
 } from "lucide-react";
 import ThemeSwitcher from "../ThemeSwitcher";
 import { API_BASE_URL } from "../../config";
@@ -175,31 +178,94 @@ const AdminDashboard = ({ user, onLogout }) => {
         </div>
 
         {/* Recent Forms */}
-        <h1 className="text-2xl font-bold text-gray-600 dark:text-gray-400 pb-2">Recent Forms</h1>
-        {recentForms.length > 0 ? (
-          recentForms.map((form, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              <div>
-                <h3 className="font-medium text-gray-900 dark:text-white">{form.title}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Created on {new Date(form.createdAt).toLocaleDateString()}
-                </p>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Recent Forms</h2>
+          <Link to="/admin/forms" className="text-blue-600 hover:text-blue-700 text-sm font-medium">View All</Link>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          {recentForms.length > 0 ? (
+            recentForms.map((form, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-md transition-all duration-200"
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h3 className="font-bold text-gray-900 dark:text-white text-lg">
+                        {form.title}
+                      </h3>
+                      <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-medium rounded-full">
+                        {form.category || "General"}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1 space-x-4">
+                      <div className="flex items-center">
+                        <Calendar className="h-3.5 w-3.5 mr-1" />
+                        <span>Created: {new Date(form.createdAt).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Users className="h-3.5 w-3.5 mr-1" />
+                        <span>{form.responseCount} {form.responseCount === 1 ? "response" : "responses"}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2 border-t md:border-t-0 pt-3 md:pt-0">
+                    <Link
+                      to={`/admin/analytics/${form.id}`}
+                      className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-colors"
+                      title="View Analytics"
+                    >
+                      <BarChart3 className="h-5 w-5" />
+                    </Link>
+                    <Link
+                      to={`/admin/forms/edit/${form.id}`}
+                      className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                      title="Edit Form"
+                    >
+                      <Edit className="h-5 w-5" />
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        if (window.confirm(`Are you sure you want to delete "${form.title}"?`)) {
+                          try {
+                            const apiBaseUrl = API_BASE_URL;
+                            const token = localStorage.getItem('token');
+                            const res = await fetch(`${apiBaseUrl}/api/forms/${form.id}`, {
+                              method: 'DELETE',
+                              headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            if (res.ok) {
+                              setRecentForms(recentForms.filter(f => f.id !== form.id));
+                              toast.success("Form deleted successfully");
+                            } else {
+                              toast.error("Failed to delete form");
+                            }
+                          } catch (err) {
+                            console.error("Error deleting form:", err);
+                            toast.error("Error deleting form");
+                          }
+                        }
+                      }}
+                      className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      title="Delete Form"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {form.responseCount}{" "}
-                  {form.responseCount === 1 ? "response" : "responses"}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Total submissions</p>
-              </div>
+            ))
+          ) : (
+            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-500 dark:text-gray-400">No forms available yet.</p>
+              <Link to="/admin/forms" className="text-blue-600 hover:underline text-sm font-medium mt-2 inline-block">Create your first form</Link>
             </div>
-          ))
-        ) : (
-          <p className="text-center text-gray-500 py-4">No forms available</p>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

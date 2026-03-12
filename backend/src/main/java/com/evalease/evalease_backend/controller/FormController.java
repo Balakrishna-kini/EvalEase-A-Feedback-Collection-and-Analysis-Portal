@@ -43,6 +43,28 @@ public class FormController {
         return ResponseEntity.ok(formDTO);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateForm(@PathVariable Long id, @RequestBody FormDTO formDTO) {
+        try {
+            Form updatedForm = formService.updateForm(id, formDTO);
+            return ResponseEntity.ok(updatedForm);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", ex.getMessage()));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteForm(@PathVariable Long id) {
+        try {
+            formService.deleteForm(id);
+            return ResponseEntity.ok(Map.of("message", "Form deleted successfully"));
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", ex.getMessage()));
+        }
+    }
+
     @Autowired
     private FormRepository formRepository;
     

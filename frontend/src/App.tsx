@@ -70,6 +70,14 @@ const App = () => {
                 } 
               />
               <Route 
+                path="/admin/forms/edit/:id" 
+                element={
+                  <ProtectedRoute user={user} allowedRole="admin">
+                    <FormBuilder />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="/admin/analytics" 
                 element={
                   <ProtectedRoute user={user} allowedRole="admin">
