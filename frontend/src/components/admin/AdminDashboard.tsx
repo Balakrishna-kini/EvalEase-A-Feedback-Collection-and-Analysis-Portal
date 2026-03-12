@@ -20,7 +20,7 @@ import { API_BASE_URL } from "../../config";
 
 const AdminDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
-  const [recentForms, setRecentForms] = useState([]); // Changed here
+  const [recentForms, setRecentForms] = useState([]);
   const [stats, setStats] = useState({
     totalForms: 0,
     responses: 0,
@@ -188,7 +188,7 @@ const AdminDashboard = ({ user, onLogout }) => {
           {recentForms.length > 0 ? (
             recentForms.map((form) => (
               <div
-                key={form.id} // Use stable ID for key
+                key={form.id}
                 className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 hover:shadow-md transition-all duration-200"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
